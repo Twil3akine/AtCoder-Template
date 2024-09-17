@@ -1,80 +1,52 @@
 import sys
 
 class Word:
-    def __init__(self, content: list[str]) -> list[str]:
-        self.content = content
+    def __init__(self) -> list[str]:
+        self.content = list(sys.stdin.readline().strip())
     
     def isPalindrome(self) -> bool:
         return self.content == self.content[::-1]
 
 class String:
-    def __init__(self, content: tuple[str] | str) -> tuple[str] | str:
-        self.content = content
+    def __init__(self) -> tuple[str] | str:
+        q = sys.stdin.readline().strip().split()
+        self.content = tuple(q) if len(q) > 1 else q[0]
 
 class StringList:
-    def __init__(self, content: list[str]) -> list[str]:
-        self.content = content
+    def __init__(self) -> list[str]:
+        self.content = sys.stdin.readline().strip().split()
 
 class Integer:
-    def __init__(self, content: tuple[int] | int) -> tuple[int] | int:
-        self.content = content
+    def __init__(self) -> tuple[int] | int:
+        q = sys.stdin.readline().strip().split()
+        self.content = tuple(map(int, q)) if len(q) > 1 else int(q[0])
 
 class IntegerList:
-    def __init__(self, content: list[int]) -> list[int]:
-        self.content = content
-
-class Input:
-    def __init__(self) -> None:
-        self.data = sys.stdin.readline().strip()
+    def __init__(self) -> list[int]:
+        self.content = list(map(int, sys.stdin.readline().strip().split()))
+        self.len = len(self.content)
     
-    # Input string 'try' such as ["t", "r", "y"]
-    def word(self) -> Word:
-        return Word(list(self.data))
+    def prefixSum1D(self) -> list[int]:
+        prefixSum = [0]*self.len
+        for i in range(self.len):
+            prefixSum[i] = self.content[i] + (prefixSum[i-1] if i>0 else 0)
 
-    # Input string(s) 'red blue green' as ("red", "blue", "green")
-    def string(self) -> String:
-        q = self.data.split()
-        return String(tuple(q) if len(q) > 1 else q[0])
+        return prefixSum
 
-    # Input string(s) 'red blue green' as ["red", "blue", "green"]
-    def stringList(self) -> StringList:
-        return StringList(self.data.split())
-
-    # Input interger(s) '1 2 3' as (1, 2, 3)
-    def integer(self) -> Integer:
-        q = self.data.split()
-        return Integer(tuple(map(int, q)) if len(q) > 1 else int(q[0]))
-
-    # Input interger(s) '1 2 3' as [1, 2, 3]
-    def integerList(self) -> IntegerList:
-        return IntegerList(list(map(int, self.data.split())))
+    def binarySearch(self, target) -> int:
+        left, right = 0, self.len
+        while left < right:
+            middle = int((left+right)//2)+1
+            if self.content[middle] <= target: left = middle + 1
+            else: right = middle - 1
+        
+        return left
 
 def solve():
-    s,t=Input().word().content, Input().word().content
-    i=0
-    flg=False
-    ans=[]
-    while s!=t:
-        if flg==False:
-            if i==len(s):
-                flg=True
-                i=len(s)-1
-                continue
-            if ord(s[i]) > ord(t[i]):
-                s[i]=t[i]
-                ans.append("".join(s))
-            i+=1
-        else:
-            if i==0:
-                flg=True
-            if ord(s[i]) < ord(t[i]):
-                s[i]=t[i]
-                ans.append("".join(s))
-            i-=1
-        
-    print(len(ans))
-    for i in ans:
-        print(i)
+    l = IntegerList()
+    print(l.content)
+    print(l.prefixSum1D())
+    print(l.binarySearch(0))
 
 if __name__ == "__main__":
     solve()
