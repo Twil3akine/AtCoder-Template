@@ -89,30 +89,7 @@ void prefixSum(const ll loop, const ll src[], ll dist[]) {
 using namespace std;
 
 int main(void) {
-    char S[]; scanf("%s", S);
-    ll N = len(S);
-
-    // 26columns x (N+1)rows
-    vector<vector<ll>> sum(26, vector<ll>(N+1, 0));
-
-    rep(i,0,N) {
-        rep(j,0,26) {
-            sum[j][i+1] = sum[j][i];
-        }
-        sum[S[i]-'A'][i+1]++;
-    }
-
-    ll ans = 0;
-    rep(i,1,N-1) {
-        rep(j,0,26) {
-            ll l = sum[j][i];
-            ll r = sum[j][N] - sum[j][i+1];
-
-            ans += l*r;
-        }
-    }
-
-    printf();
+    
 
     return 0;
 }
