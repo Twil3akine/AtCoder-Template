@@ -230,21 +230,37 @@ INF = 10**18+1
 dx = [0,  0,  1, -1,  1, -1,  1, -1]
 dy = [1, -1,  0,  0,  1, -1, -1,  1]
 
+NA = 65
+
 @cache
 def recursive():
     pass
 
 def solve():
+    N = Integer().content
+    S = Word().content
     
+    ans = 0
     
+    hand = None
+    for i in S:
+        if i=='P' and hand!='S':
+            hand = 'S'
+            ans += 1
+        elif i=='R' and hand!='P':
+            hand = 'P'
+            ans += 1
+        elif i=='S' and hand!='R':
+            hand = 'R'
+            ans += 1
+    print(ans)
+
 if __name__ == "__main__":
     solve()
 
 """
 
-6 3
-101010
--7 -3 0 7 10 19
+ADBCACC
 
 
 """
