@@ -88,24 +88,7 @@ void prefixSum(const ll loop, const ll src[], ll dist[]) {
 }
 
 int main(void) {
-    ll N, M; scanf("%lld%lld", &N, &M);
-    ll A[M]; rep(i,0,M) scanf("%lld", &A[i]);
-    ll firework[N];
-
-    rep(i,0,N) firework[i] = 0;
-
-    rep(i,0,M) {
-        firework[A[i]-1]++;
-    }
-
-    rep(i,0,N-1) firework[i+1] = firework[i] + ((firework[i+1]) ? 1:0);
-
-    ll p=0;
-    rep(i,0,N) {
-        while (firework[p]-firework[p-1]==0) p++;
-        printf("%lld\n", p-i);
-        if (i==p) p++;
-    }
+    
 
     return 0;
 }
