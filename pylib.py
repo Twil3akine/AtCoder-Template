@@ -8,7 +8,7 @@ from heapq import heapify, heappush, heappop
 from itertools import product, zip_longest
 from more_itertools import distinct_combinations as combinations, distinct_permutations as permutations
 
-# 別に必要ではないやつ
+# 別に必要ではないやつime
 # import numpy as np
 
 sys.setrecursionlimit(10**6)
@@ -206,11 +206,6 @@ def YesNo(cdt): print("Yes" if cdt==True else "No")
 
 def distance(a,b): return ((b[0]-a[0])**2+(b[1]-a[1])**2)**0.5
 
-def factorial(x):
-    ans = 1
-    for i in range(1,x+1): ans *= i
-    return ans
-
 INF = 10**18+1
 
 dx = [0,  0,  1, -1,  1, -1,  1, -1]
@@ -230,8 +225,7 @@ if __name__ == "__main__":
 
 """
 
-10
-(())((()))
+ADBCACC
 
 
 """
