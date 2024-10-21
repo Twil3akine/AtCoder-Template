@@ -8,29 +8,10 @@ from heapq import heapify, heappush, heappop
 from itertools import product, zip_longest
 from more_itertools import distinct_combinations as combinations, distinct_permutations as permutations
 
-# # 別に必要ではないやつ
-# from pprint import pprint
-# from time import time
+# 別に必要ではないやつ
 # import numpy as np
 
 sys.setrecursionlimit(10**6)
-
-class Time:
-    def __init__(self) -> None:
-        self.start = None
-        self.finish = None
-        self.judge = True if __file__ == '/judge/Main.py' else False
-    
-    def button(self) -> None:
-        if self.start is None:
-            self.start = time()
-        else:
-            self.finish = time()
-
-    def check(self, data=None) -> None:
-        if self.judge == True: return 0
-        if data is not None: print(data, end=": ")
-        print(self.finish - self.start)
 
 # datatype such as ["t", "r", "y"]
 class Word:
@@ -225,6 +206,11 @@ def YesNo(cdt): print("Yes" if cdt==True else "No")
 
 def distance(a,b): return ((b[0]-a[0])**2+(b[1]-a[1])**2)**0.5
 
+def factorial(x):
+    ans = 1
+    for i in range(1,x+1): ans *= i
+    return ans
+
 INF = 10**18+1
 
 dx = [0,  0,  1, -1,  1, -1,  1, -1]
@@ -244,7 +230,8 @@ if __name__ == "__main__":
 
 """
 
-ADBCACC
+10
+(())((()))
 
 
 """
