@@ -18,14 +18,12 @@ class Word:
     def __init__(self, data=None) -> None:
         self.content = list(sys.stdin.readline().strip()) if data==None else data
 
-    def int(self) -> list[int]:
-        return list(map(int, self.content))
-        
-    def print(self) -> None:
-        print("".join(self.content))
-
     def isPalindrome(self) -> bool:
         return self.content == self.content[::-1]
+    
+class WordGrid:
+    def __init__(self, height, width, data=None) -> None:
+        self.content = [Word().content for _ in range(height)] if data==None else data
 
 # datatype such as ("red", "blue", "green")
 class String:
@@ -114,10 +112,6 @@ class IntegerGrid:
 
         return prefix
     
-class Map:
-    def __init__(self, height, width, data=None) -> None:
-        self.content = [Word().content for _ in range(height)] if data==None else data
-
 class Tree:
     def __init__(self, data: int) -> None:
         self.data = data
@@ -174,7 +168,7 @@ class UnionFind:
     def same(self, x: int, y: int):
         return self.find(x) == self.find(y)
     
-class directedGraph:
+class Graph:
     def __init__(self, n, m, costflg=False, directflg=False) -> list[list[int]]:
         self.graph = [[] for _ in range(n)]
         for _ in range(m):
@@ -201,6 +195,16 @@ class Dijkstra:
                     heappush(self.queue, (self.distances[v], v))
         
         return self.distances
+    
+class Cycle: # under developped
+    def __init__(self, n:int, x:int, y:int) -> None:
+        self.size = n
+        self.left = x
+        self,right = y
+    
+    def position(self, target, direction=False) -> bool:
+        
+        pass
 
 def YesNo(cdt): print("Yes" if cdt==True else "No")
 
@@ -208,10 +212,9 @@ def distance(a,b): return ((b[0]-a[0])**2+(b[1]-a[1])**2)**0.5
 
 INF = 10**18+1
 
+#     2   8   6   4   9   1   3   7
 dx = [0,  0,  1, -1,  1, -1,  1, -1]
 dy = [1, -1,  0,  0,  1, -1, -1,  1]
-
-NA = 65
 
 @cache
 def recursive():
