@@ -7,6 +7,7 @@
 
 #define INF 1000000000000000001
 
+#define I int
 #define sh short int
 #define ll long long
 
@@ -30,7 +31,8 @@ ll ipow(const void *x, const void *y) {
 using namespace std;
 
 int main(void) {
-    
+    ll N, M;
+    cin >> N >> M;
 
     return 0;
 }

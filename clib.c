@@ -89,7 +89,7 @@ void prefixSum(const ll loop, const ll src[], ll dist[]) {
 }
 
 int main(void) {
-    
+    printf("%s\n", "Hello, Clang!");
 
     return 0;
 }

@@ -1,6 +1,6 @@
 import sys
 
-# import random
+import random
 from functools import cache
 from sortedcontainers import SortedList, SortedSet
 from collections import defaultdict, deque, Counter
@@ -111,36 +111,6 @@ class IntegerGrid:
                                    self.content[h][w])
 
         return prefix
-    
-class Tree:
-    def __init__(self, data: int) -> None:
-        self.data = data
-        self.parent = None
-        self.children = []
-    
-    def addChild(self, child):
-        child.parent = self
-        self.children.append(child)
-        
-    def climb(self):
-        nowNode = self
-        while nowNode.parent != None:
-            nowNode = nowNode.parent
-        return nowNode
-    
-    def dfs(self):
-        stack = deque([self])
-        while stack:
-            nowNode = stack.pop()
-            print(nowNode.data)
-            stack.extend(reversed(nowNode.children))
-            
-    def bfs(self):
-        stack = deque([self])
-        while stack:
-            nowNode = stack.popleft()
-            print(nowNode.data)
-            stack.extend(nowNode.children)
 
 class UnionFind:
     def __init__(self, n: int) -> None:
@@ -203,7 +173,6 @@ class Cycle: # under developped
         self,right = y
     
     def position(self, target, direction=False) -> bool:
-        
         pass
 
 def YesNo(cdt): print("Yes" if cdt==True else "No")
@@ -223,8 +192,13 @@ def recursive():
 def solve():
     
 
+TURNING = 1
+def main():
+    for i in range(TURNING):
+        solve()
+
 if __name__ == "__main__":
-    solve()
+    main()
 
 """
 
