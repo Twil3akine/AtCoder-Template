@@ -17,19 +17,21 @@
 
 #define max(x, y) ((x >= y) ? (x) : (y))
 #define min(x, y) ((x >= y) ? (y) : (x))
-#define abs(x) ((x>0) ? (x) : (-x))
+#define abs(x) ((x > 0) ? (x) : (-x))
 
 #define len(s) sizeof(s) / sizeof(s[0])
 
 #define ent putchar(10)
 
-ll ipow(const void *x, const void *y) {
+ll ipow(const void *x, const void *y)
+{
     ll total = 1;
-    rep(i,0,*(ll *)y+1) total *= *(ll *)x;
+    rep(i, 0, *(ll *)y + 1) total *= *(ll *)x;
     return total;
 }
 
-int cmpNumInc(const void *x, const void *y) {
+int cmpNumInc(const void *x, const void *y)
+{
     if (*(ll *)x < *(ll *)y)
         return -1;
     else if (*(ll *)x > *(ll *)y)
@@ -38,7 +40,8 @@ int cmpNumInc(const void *x, const void *y) {
         return 0;
 }
 
-int cmpNumDec(const void *x, const void *y) {
+int cmpNumDec(const void *x, const void *y)
+{
     if (*(ll *)x > *(ll *)y)
         return -1;
     else if (*(ll *)x < *(ll *)y)
@@ -47,15 +50,18 @@ int cmpNumDec(const void *x, const void *y) {
         return 0;
 }
 
-void isort(ll list[], const ll len) {
+void isort(ll list[], const ll len)
+{
     qsort(list, len, sizeof(list[0]), cmpNumInc);
 }
 
-void dsort(ll list[], const ll len) {
+void dsort(ll list[], const ll len)
+{
     qsort(list, len, sizeof(list[0]), cmpNumDec);
 }
 
-ll lowerBound(const ll list[], const ll len, const ll target) {
+ll lowerBound(const ll list[], const ll len, const ll target)
+{
     ll left = 0, right = len;
     while (left < right)
     {
@@ -68,7 +74,8 @@ ll lowerBound(const ll list[], const ll len, const ll target) {
     return right;
 }
 
-ll upperBound(const ll list[], const ll len, const ll target) {
+ll upperBound(const ll list[], const ll len, const ll target)
+{
     ll left = 0, right = len;
     while (left < right)
     {
@@ -81,15 +88,21 @@ ll upperBound(const ll list[], const ll len, const ll target) {
     return right;
 }
 
-void prefixSum(const ll loop, const ll src[], ll dist[]) {
+void prefixSum(const ll loop, const ll src[], ll dist[])
+{
     rep(i, 0, loop)
     {
         dist[i + 1] = dist[i] + src[i];
     }
 }
 
-int main(void) {
-    printf("%s\n", "Hello, Clang!");
+int main(void)
+{
+    char N[3];
+    scanf("%s", &N);
+    char a = N[0], b = N[1], c = N[2];
+
+    printf("%c%c%c %c%c%c\n", b, c, a, c, a, b);
 
     return 0;
 }

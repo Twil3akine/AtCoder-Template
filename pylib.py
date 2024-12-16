@@ -71,7 +71,7 @@ class IntegerList:
         return prefixSumReverse
 
     def lowerBound(self, target) -> int: # target を挿入するべき最小の位置
-        left, right = -1, len(self.content)
+        left, right = -1, len(self.content)-1
         while right - left > 1:
             middle = left + (right - left)//2
             if self.content[middle] < target: left = middle
@@ -80,7 +80,7 @@ class IntegerList:
         return right
         
     def upperBound(self, target) -> int: # target を挿入するべき最大の位置
-        left, right = -1, len(self.content)
+        left, right = -1, len(self.content)-1
         while right - left > 1:
             middle = left + (right - left)//2
             if self.content[middle] <= target: left = middle
@@ -190,8 +190,22 @@ def recursive():
     pass
 
 def solve():
+    N,M,D = Integer().content
+    A = IntegerList().content
+    B = IntegerList().content
     
-
+    A.sort()
+    B.sort()
+    B = IntegerList(B)
+    
+    for Ai in A[::-1]:
+        rlt = B.upperBound(Ai+D-1)
+        if abs(B.content[rlt]-Ai)<=D:
+            print(Ai+B.content[rlt])
+            return 
+    print(-1)
+    return
+    
 TURNING = 1
 def main():
     for i in range(TURNING):
@@ -202,7 +216,11 @@ if __name__ == "__main__":
 
 """
 
-ADBCACC
+3 6
+1 3
+4 4
+5 6
+
 
 
 """

@@ -29,6 +29,7 @@ esac
 
 # コンパイルが成功したら実行
 if [ $? -eq 0 ]; then
+echo "please input"
 ./a.out
 else
 echo "Errors happened to compile..."
