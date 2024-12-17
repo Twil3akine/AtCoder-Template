@@ -1,5 +1,11 @@
 use proconio::input;
-use std::process::exit;
+use std::{
+    process::exit,
+    ops::{
+        Add,
+        AddAssign,
+    },
+};
 
 /* 10^18を越えるときのみ、128bitを使うこと。 */
 
@@ -43,8 +49,29 @@ fn binary_search<T: Ord>(vector: &[T], target: T, upper: bool) -> usize {
     right as usize
 }
 
+fn cumulative_sum<T: Copy + Add<Output = T> + AddAssign>(vector: &mut [T], reverse: bool) {
+    if reverse {
+        for i in (0..vector.len()-1).rev() {
+            vector[i] += vector[i + 1];
+        }
+    } else {
+        for i in 1..vector.len() {
+            vector[i] += vector[i - 1];
+        }
+    }
+}
+
+
 fn main() {
     input!(
         
     );
+
+    let mut v: Vec<u8> = Vec::new();
+    for i in 0u8..16u8 {
+        v.push(i);
+    }
+    println!("{:?}", v);
+    cumulative_sum(&mut v, false);
+    println!("{:?}", v);
 }
