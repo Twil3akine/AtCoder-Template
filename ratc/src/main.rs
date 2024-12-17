@@ -66,12 +66,4 @@ fn main() {
     input!(
         
     );
-
-    let mut v: Vec<u8> = Vec::new();
-    for i in 0u8..16u8 {
-        v.push(i);
-    }
-    println!("{:?}", v);
-    cumulative_sum(&mut v, false);
-    println!("{:?}", v);
 }
