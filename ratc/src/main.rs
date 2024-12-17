@@ -44,5 +44,7 @@ fn binary_search<T: Ord>(vector: &[T], target: T, upper: bool) -> usize {
 }
 
 fn main() {
-    
+    input!(
+        
+    );
 }
