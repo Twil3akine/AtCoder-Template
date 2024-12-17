@@ -44,10 +44,5 @@ fn binary_search<T: Ord>(vector: &[T], target: T, upper: bool) -> usize {
 }
 
 fn main() {
-    let mut v: Vec<i64> = vec![0,9,1,8,2,7,3,6,3,5,4,5];
-    v.sort();
-
-    println!("{:?}", v);
-    println!("{}", binary_search(&v, 3, false));
-    println!("{}", binary_search(&v, 3, true));
+    
 }
