@@ -1,10 +1,12 @@
-use proconio::input;
+use proconio::{
+    input,
+    marker::Chars,
+};
 use std::{
-    process::exit,
-    ops::{
+    fmt::write, ops::{
         Add,
         AddAssign,
-    },
+    }, process::exit
 };
 
 /* 10^18を越えるときのみ、128bitを使うこと。 */
@@ -25,7 +27,7 @@ fn yes_no(cdt: bool) -> () {
 }
 
 // 引数で渡されるベクタは整列前提
-fn binary_search<T: Ord>(vector: &[T], target: T, upper: bool) -> usize {
+fn binary_search<T: Ord>(vector: &[T], target: T, upper: bool, reverse: bool) -> usize {
     let mut left: isize = -1;
     let mut right: isize = vector.len() as isize - 1;
     let mut cnt: usize = 0;
@@ -38,7 +40,7 @@ fn binary_search<T: Ord>(vector: &[T], target: T, upper: bool) -> usize {
 
     while (cnt <= 20) && (right - left > 1) {
         let middle: isize = left + (right - left) / 2;
-        if condition(middle) {
+        if condition(middle) ^ reverse {
             left = middle;
         } else {
             right = middle;
@@ -61,9 +63,8 @@ fn cumulative_sum<T: Copy + Add<Output = T> + AddAssign>(vector: &mut [T], rever
     }
 }
 
-
 fn main() {
-    input!(
+    input! {
         
-    );
+    };
 }
