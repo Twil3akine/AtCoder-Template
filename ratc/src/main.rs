@@ -3,10 +3,13 @@ use proconio::{
     marker::Chars,
 };
 use std::{
-    fmt::write, ops::{
+    fmt::write,
+    ops::{
         Add,
         AddAssign,
-    }, process::exit
+    },
+    process::exit,
+    collections::*,
 };
 
 /* 10^18を越えるときのみ、128bitを使うこと。 */

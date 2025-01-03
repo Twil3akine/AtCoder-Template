@@ -54,7 +54,7 @@ class IntegerList:
         self.content = list(map(int, sys.stdin.readline().strip().split())) if data==None else data
 
     def indexList(self) -> list[int]:
-        return sorted(range(len(self.content)), key=lambda i: self.content[i])
+        return range(len(self.content))
     
     def prefixSum1D(self) -> list[int]:
         prefixSum = [0]*(len(self.content)+1)
@@ -189,21 +189,18 @@ dy = [1, -1,  0,  0,  1, -1, -1,  1]
 def recursive():
     pass
 
+def lowerBound(list, target) -> int: # target を挿入するべき最小の位置
+    left, right = -1, len(list)-1
+    while right - left > 1:
+        middle = left + (right - left)//2
+        if list[middle] < target: left = middle
+        else: right = middle
+    
+    return right
+
 def solve():
-    N,M,D = Integer().content
-    A = IntegerList().content
-    B = IntegerList().content
     
-    A.sort()
-    B.sort()
-    B = IntegerList(B)
     
-    for Ai in A[::-1]:
-        rlt = B.upperBound(Ai+D-1)
-        if abs(B.content[rlt]-Ai)<=D:
-            print(Ai+B.content[rlt])
-            return 
-    print(-1)
     return
     
 TURNING = 1
