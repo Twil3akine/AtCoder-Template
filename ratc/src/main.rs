@@ -52,7 +52,7 @@ fn bound_search<T: Ord>(vector: &[T], target: T, upper: bool, reverse: bool) -> 
     right as usize
 }
 
-fn manacher(s: &[char]) -> Vec<usize> {
+fn manacher<T: Ord>(s: &[T]) -> Vec<usize> {
     let n: usize = s.len();
     let mut a: Vec<usize> = vec![0; 2*n+1];
     let (mut i, mut j): (usize, usize) = (1, 1);
@@ -80,7 +80,7 @@ fn manacher(s: &[char]) -> Vec<usize> {
     a.chunks_exact(2).map(|chunk| chunk[1].clone()).collect::<Vec<usize>>()
 }
 
-fn zlgorithm(s: &[char]) -> Vec<usize> {
+fn zlgorithm<T: Ord>(s: &[T]) -> Vec<usize> {
     let n: usize = s.len();
     let mut z: Vec<usize> = vec![0; n];
     let (mut l, mut r): (usize, usize) = (0, 0);
