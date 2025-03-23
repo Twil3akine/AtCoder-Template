@@ -11,7 +11,11 @@ use std::{
 };
 use proconio::{
     input,
-    marker::Chars,
+    marker::{
+        Chars, // Read Vec<char>
+        Usize1, // Read usize as 1-indexed
+        Isize1, // Read isize as 1-indexed
+    },
 };
 use itertools::*;
 
@@ -93,12 +97,7 @@ fn zlgorithm(s: &[char]) -> Vec<usize> {
 
 
 fn main() {
-    input! {
-        s: Chars,
-    }
-    printvec!(s);
-    printvec!(zlgorithm(&s));
-    printvec!(manacher(&s));
+    
 }
 
 
