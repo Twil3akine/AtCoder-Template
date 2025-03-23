@@ -27,7 +27,7 @@ fn no(cdt: bool) {
 }
 
 // 引数で渡されるベクタは整列前提
-fn binary_search<T: Ord>(vector: &[T], target: T, upper: bool, reverse: bool) -> usize {
+fn bound_search<T: Ord>(vector: &[T], target: T, upper: bool, reverse: bool) -> usize {
     let mut left: isize = -1;
     let mut right: isize = vector.len() as isize - 1;
     let condition: Box<dyn Fn(isize) -> bool> = if upper {
@@ -48,7 +48,7 @@ fn binary_search<T: Ord>(vector: &[T], target: T, upper: bool, reverse: bool) ->
     right as usize
 }
 
-fn zlgorithm(target: Vec<char>) -> Vec<usize> {
+fn zlgorithm(target: &Vec<char>) -> Vec<usize> {
     let n: usize = target.len();
     let mut z: Vec<usize> = vec![0; n];
     let (mut l, mut r): (usize, usize) = (0, 0);
