@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # type: ignore
 
 import sortedcontainers
