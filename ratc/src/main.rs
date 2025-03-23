@@ -1,31 +1,28 @@
+#![allow(unused_imports)]
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
+use std::{
+    process::exit,
+    collections::{
+        HashSet,
+        HashMap,
+    },
+};
 use proconio::{
     input,
     marker::Chars,
 };
-use std::{
-    fmt::write,
-    ops::{
-        Add,
-        AddAssign,
-    },
-    process::exit,
-    collections::*,
-};
+use itertools::*;
 
-/* 10^18を越えるときのみ、128bitを使うこと。 */
-
-fn no(cdt: bool) -> () {
-    if cdt == false {
-        println!("No");
-        exit(0);
-    }
+fn yes_no(cdt: bool) {
+    println!("{}", if cdt { "Yes" } else { "No" })
 }
 
-fn yes_no(cdt: bool) -> () {
-    if cdt == true {
-        println!("Yes");
-    } else {
+fn no(cdt: bool) {
+    if !cdt {
         println!("No");
+        exit(0);
     }
 }
 
@@ -41,33 +38,58 @@ fn binary_search<T: Ord>(vector: &[T], target: T, upper: bool, reverse: bool) ->
         Box::new(|mid: isize| vector[mid as usize] < target)
     };
 
-    while (cnt <= 20) && (right - left > 1) {
+    while right - left > 1 {
         let middle: isize = left + (right - left) / 2;
         if condition(middle) ^ reverse {
             left = middle;
         } else {
             right = middle;
         }
-        cnt += 1;
     }
 
     right as usize
 }
 
-fn cumulative_sum<T: Copy + Add<Output = T> + AddAssign>(vector: &mut [T], reverse: bool) {
-    if reverse {
-        for i in (0..vector.len()-1).rev() {
-            vector[i] += vector[i + 1];
-        }
-    } else {
-        for i in 1..vector.len() {
-            vector[i] += vector[i - 1];
-        }
+fn zlgorithm(target: Vec<char>) -> Vec<usize> {
+    let n: usize = target.len();
+    let mut z: Vec<usize> = vec![0; n];
+    let (mut l, mut r): (usize, usize) = (0, 0);
+    for i in range!(1, n) {
+        if i <= r { z[i] = z[i-l].min(r-i+1); }
+        while (i + z[i] < n) && (target[z[i]] == target[i+z[i]]) { z[i] += 1; }
+        if r < i+z[i]-1 { l = i; r = i+z[i]-1; }
     }
+    z
 }
 
+
+
+
+
 fn main() {
-    input! {
-        
+
+}
+
+
+
+
+
+#[macro_export]
+macro_rules! printvec {
+    ($vec:expr) => {
+        println!("{}", $vec.iter().map(|v| v.to_string()).collect::<Vec<_>>().join(" "));
     };
+}
+
+#[macro_export]
+macro_rules! range {
+    ($finish: expr) => {
+        (0..$finish).collect::<Vec<_>>()
+    };
+    ($start: expr, $finish: expr) => {
+        ($start..$finish).collect::<Vec<_>>()
+    };
+    ($start: expr, $finish: expr, $step: expr) => {
+        ($start..$finish).step_by($step).collect::<Vec<_>>()
+    }
 }
