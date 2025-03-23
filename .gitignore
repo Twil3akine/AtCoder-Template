@@ -1,8 +1,9 @@
+# vscode setting
 .vscode
-ABC/*
-AHC/*
-ARC/*
 
+# compile output file
 a.out
-
 ratc/target
+
+# venv directory
+vv
