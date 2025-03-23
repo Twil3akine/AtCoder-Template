@@ -48,7 +48,7 @@ fn bound_search<T: Ord>(vector: &[T], target: T, upper: bool, reverse: bool) -> 
     right as usize
 }
 
-fn zlgorithm(target: &Vec<char>) -> Vec<usize> {
+fn zlgorithm(target: &[char]) -> Vec<usize> {
     let n: usize = target.len();
     let mut z: Vec<usize> = vec![0; n];
     let (mut l, mut r): (usize, usize) = (0, 0);
@@ -65,7 +65,11 @@ fn zlgorithm(target: &Vec<char>) -> Vec<usize> {
 
 
 fn main() {
-
+    input! {
+        s: Chars,
+    }
+    printvec!(s);
+    printvec!(zlgorithm(&s));
 }
 
 
