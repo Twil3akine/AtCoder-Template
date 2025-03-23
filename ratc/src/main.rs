@@ -30,8 +30,6 @@ fn no(cdt: bool) {
 fn binary_search<T: Ord>(vector: &[T], target: T, upper: bool, reverse: bool) -> usize {
     let mut left: isize = -1;
     let mut right: isize = vector.len() as isize - 1;
-    let mut cnt: usize = 0;
-
     let condition: Box<dyn Fn(isize) -> bool> = if upper {
         Box::new(|mid: isize| vector[mid as usize] <= target)
     } else {
