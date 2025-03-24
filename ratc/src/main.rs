@@ -130,3 +130,20 @@ macro_rules! range {
         ($start..$finish).step_by($step).collect::<Vec<_>>()
     }
 }
+
+/*
+ * # Vector
+ * O(1): len(&self) -> usize
+ * O(1): is_empty(&self) -> bool
+ * O(1): iter(&self) -> Iter<'_, A>
+ * O(1): iter_mut(&self) -> IterMut<'_, A>
+ * O(n): index_of(&self, v: &<A: PartialEq>) -> Option<usize>
+ * O(n): contains(&self, v: &<A: PartialEq>) -> bool
+ * O(logn): swap(&mut self, i: usize, j: usize)
+ * O(1): push_front(&mut self, v: A)
+ * O(1): push_back(&mut self, v: A)
+ * O(1): pop_front(&mut self) -> Option<A>
+ * O(1): pop_back(&mut self) -> Option<A>
+ * O(nlogn): sort(&mut self)
+ * O(nlogn): sort_by<F>(&mut self, cmp: F)
+ */
