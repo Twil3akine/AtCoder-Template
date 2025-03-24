@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # vscode setting
 .vscode
 
@@ -10,4 +9,4 @@ ratc/target
 vv
 
 # log
-*.log
+**/*.log
