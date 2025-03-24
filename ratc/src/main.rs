@@ -23,6 +23,13 @@ fn yes_no(cdt: bool) {
     println!("{}", if cdt { "Yes" } else { "No" })
 }
 
+fn yes(cdt: bool) {
+    if cdt {
+        println!("Yes");
+        exit(0);
+    }
+}
+
 fn no(cdt: bool) {
     if !cdt {
         println!("No");
