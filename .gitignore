@@ -2,11 +2,11 @@
 .vscode
 
 # compile output file
-a.out
-ratc/target
+**/a.out
+**/target
 
 # venv directory
-vv
+**/vv
 
 # log
 **/*.log
