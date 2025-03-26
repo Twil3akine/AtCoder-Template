@@ -1,5 +1,5 @@
-#![allow(unused_imports)]
 #![allow(dead_code)]
+#![allow(unused_imports)]
 #![allow(unused_variables)]
 
 use std::{
@@ -84,7 +84,7 @@ fn manacher<T: Ord>(s: &[T]) -> Vec<usize> {
         i += k;
         j -= k;
     }
-    a.chunks_exact(2).map(|chunk| chunk[1].clone()).collect::<Vec<usize>>()
+    a.chunks_exact(2).map(|chunk| chunk[1]).collect::<Vec<usize>>()
 }
 
 fn zlgorithm<T: Ord>(s: &[T]) -> Vec<usize> {
@@ -104,7 +104,7 @@ fn zlgorithm<T: Ord>(s: &[T]) -> Vec<usize> {
 
 
 fn main() {
-    
+
 }
 
 
@@ -133,17 +133,51 @@ macro_rules! range {
 
 /*
  * # Vector
- * O(1): len(&self) -> usize
- * O(1): is_empty(&self) -> bool
- * O(1): iter(&self) -> Iter<'_, A>
- * O(1): iter_mut(&self) -> IterMut<'_, A>
- * O(n): index_of(&self, v: &<A: PartialEq>) -> Option<usize>
- * O(n): contains(&self, v: &<A: PartialEq>) -> bool
- * O(logn): swap(&mut self, i: usize, j: usize)
- * O(1): push_front(&mut self, v: A)
- * O(1): push_back(&mut self, v: A)
- * O(1): pop_front(&mut self) -> Option<A>
- * O(1): pop_back(&mut self) -> Option<A>
- * O(nlogn): sort(&mut self)
- * O(nlogn): sort_by<F>(&mut self, cmp: F)
+ *
+ * len(&self) -> usize
+ * is_empty(&self) -> bool
+ * iter(&self) -> Iter<'_, A>
+ * iter_mut(&self) -> IterMut<'_, A>
+ * index_of(&self, v: &<A: PartialEq>) -> Option<usize>
+ * contains(&self, v: &<A: PartialEq>) -> bool
+ * swap(&mut self, i: usize, j: usize)
+ * push_front(&mut self, v: A)
+ * push_back(&mut self, v: A)
+ * pop_front(&mut self) -> Option<A>
+ * pop_back(&mut self) -> Option<A>
+ * sort(&mut self)
+ * sort_by<F>(&mut self, cmp: F)
+ *
+ * ---
+ * # Iterator
+ * 
+ * step_by(self, step: usize) -> StepBy<Self>
+ * chain<U: IntoIterator>(self, other: U) -> Chain<Self, <U as IntoIterator>::IntoIter>
+ * zip<U: IntoIterator>(self, other: U) -> Zip<Self, <U as IntoIterator>::IntoIter>
+ * map<B, F: FnMut(Self::Item) -> B>(self, f: F) -> Map<self, F>
+ * filter<P: FnMut(&Self::Item) -> bool>(self, prd: P) -> Filter<Self, P>
+ * enumurate(self) -> Enumurate<Self> = (i, &v)
+ * flatten(self) -> Flatter<Self>
+ * collect<B: FromIterator<Self::Item>>(self) -> B
+ * fold<B, F: FnMut(B, Self::Item) -> B>(self, init: B, f: F) -> B
+ * all<F: FnMut(Self::Item) -> bool>(&mut self, f: F) -> bool
+ * any<F: FnMut(Self::Item) -> bool>(&mut self, f: F) -> bool
+ * sum<S: Sum<Self::Item>>(self) -> S
+ * product<P: Product<Self::Item>>(self) -> P
+ * max(self) -> Option<Self::Item>
+ * min(self) -> Option<Self::Item>
+ * max_by_key<B: Ord, F: FnMut(&Self::Item) -> B>(self, f: F) -> Option<Self::Item>
+ * max_by<F: FnMut(&Self::Item, &Self::Item) -> Ordering>(self, comp: F) -> Option<Self::Item>
+ * min_by_key<B: Ord, F: FnMut(&Self::Item) -> B>(self, f: F) -> Option<Self::Item>
+ * min_by<F: FnMut(&Self::Item, &Self::Item) -> Ordering>(self, comp: F) -> Option<Self::Item>
+ * rev(self) -> Rev<Self>
+ * copied<'a, T: 'a + Copy>(self) -> Copied<Self>
+ * cloned<'a, T: 'a + Clone>(self) -> Cloned<Self>
+ * cycle(self) -> Cycle<Self>
+ * cmp<I: IntoIterator<Item = Self::Item>>(self, other: I) -> Ordering
+ * cmp_by<I: IntoIterator, F: FnMut(Self::Item, <I as Intoiterator>::Item) -> Ordering>(self,
+ * other: I, cmp: F) -> Ordering
+ *
+ * ---
+ * # HashSet
  */
