@@ -8,6 +8,9 @@ use std::{
         HashSet,
         HashMap,
     },
+    ops::{
+        AddAssign,
+    },
 };
 use proconio::{
     input,
@@ -59,6 +62,18 @@ fn bound_search<T: Ord>(vector: &[T], target: T, upper: bool, reverse: bool) -> 
     right as usize
 }
 
+fn cumulative_sum<T: AddAssign + Copy + Default>(v: &[T], reverse: bool) -> Vec<T> {
+    let mut rlt: Vec<T> = Vec::with_capacity(v.len());
+    let mut cum: T = T::default();
+
+    for &x in if reverse { v.iter().rev().collect::<Vec<_>>() } else { v.into_iter().collect() } {
+        cum += x;
+        rlt.push(cum);
+    }
+
+    rlt
+}
+
 fn manacher<T: Ord>(s: &[T]) -> Vec<usize> {
     let n: usize = s.len();
     let mut a: Vec<usize> = vec![0; 2*n+1];
@@ -104,7 +119,7 @@ fn zlgorithm<T: Ord>(s: &[T]) -> Vec<usize> {
 
 
 fn main() {
-
+    
 }
 
 
@@ -132,7 +147,7 @@ macro_rules! range {
 }
 
 /*
- * # Vector
+ * # VecDeque
  *
  * len(&self) -> usize
  * is_empty(&self) -> bool
@@ -160,6 +175,7 @@ macro_rules! range {
  * flatten(self) -> Flatter<Self>
  * collect<B: FromIterator<Self::Item>>(self) -> B
  * fold<B, F: FnMut(B, Self::Item) -> B>(self, init: B, f: F) -> B
+ * reduce<F: FnMut(Self::Item, Self::Item) -> Self::Item>(self, f: F) -> Option<Self::Item>
  * all<F: FnMut(Self::Item) -> bool>(&mut self, f: F) -> bool
  * any<F: FnMut(Self::Item) -> bool>(&mut self, f: F) -> bool
  * sum<S: Sum<Self::Item>>(self) -> S
