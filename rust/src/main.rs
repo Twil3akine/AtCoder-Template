@@ -147,6 +147,30 @@ macro_rules! range {
 }
 
 /*
+ * # Vector
+ * insert(&mut self, idx: usize, elm: T)
+ * remove(&mut self, idx: usize) -> T
+ * push(&mut self, v: T)
+ * pop(&mut self) -> Option<T>
+ * clear(&mut self)
+ * len(&mut self) -> usize
+ * is_empty(&self) -> bool
+ * swap(&mut self, a: usize, b: usize)
+ * reverse(&mut self)
+ * iter(&self) -> Iter<'_, T>
+ * iter_mut(&mut self) -> IterMut<'_, T>
+ * chunks(&self, chunk_size: usize) -> Chunks<'_, T>
+ * chunks_mut(&mut self, chunk_size: usize) -> ChunksMut<'_, T>
+ * chunk_by<F: FnMut(&T, &T) -> bool>(&self, pred: F) -> ChunkBy<'_, T, F>
+ * chunk_by_mut<F: FnMut(&T, &T) -> bool>(&self, pred: F) -> ChunkByMut<'_, T, F>
+ * contains(&self, x: &T) -> bool
+ * starts_with(&self, needle: &[T]) -> bool
+ * ends_with(&self, needle: &[T]) -> bool
+ * sort(&mut self)
+ * sort_by<F: FnMut(&T, &T) -> Ordering>(&mut self, compare: F)
+ * sort_by_key<K: Ord, F: FnMut(&T) -> K>(&mut self, f: F)
+ *
+ * ---
  * # VecDeque
  *
  * len(&self) -> usize
