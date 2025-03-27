@@ -104,8 +104,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "ratc"
-version = "0.1.0"
+name = "rust"
+version = "0.55.57"
 dependencies = [
  "itertools",
  "proconio",
