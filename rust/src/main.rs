@@ -40,19 +40,13 @@ fn no(cdt: bool) {
     }
 }
 
-// 引数で渡されるベクタは整列前提
-fn bound_search<T: Ord>(vector: &[T], target: T, upper: bool, reverse: bool) -> usize {
+fn bound_search<T: Ord, F: Fn(isize) -> bool>(v: &[T], target: T, cdn: F) -> usize {
     let mut left: isize = -1;
-    let mut right: isize = vector.len() as isize - 1;
-    let condition: Box<dyn Fn(isize) -> bool> = if upper {
-        Box::new(|mid: isize| vector[mid as usize] <= target)
-    } else {
-        Box::new(|mid: isize| vector[mid as usize] < target)
-    };
+    let mut right: isize = v.len() as isize - 1;
 
     while right - left > 1 {
         let middle: isize = left + (right - left) / 2;
-        if condition(middle) ^ reverse {
+        if cdn(middle) {
             left = middle;
         } else {
             right = middle;
@@ -117,11 +111,13 @@ fn zlgorithm<T: Ord>(s: &[T]) -> Vec<usize> {
 
 
 
-
+//////////////////////////////////////////////////
 fn main() {
     
 }
 
+
+//////////////////////////////////////////////////
 
 
 
