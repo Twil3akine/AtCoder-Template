@@ -115,12 +115,12 @@ fn zlgorithm<T: Ord>(s: &[T]) -> Vec<usize> {
 struct SegmentTree<F: Fn(isize, isize) -> isize> {
     n: usize,
     node: Vec<isize>,
-    inf: isize,
+    unit: isize,
     f: F
 }
 
 impl<F: Fn(isize, isize) -> isize> SegmentTree<F> {
-    fn new(v: Vec<isize>, inf: isize, f: F) -> Self {
+    fn new(v: Vec<isize>, unit: isize, f: F) -> Self {
         // 全体のノード数は2*n-1
         let size: usize = v.len();
         let mut n: usize = 1;
@@ -128,8 +128,8 @@ impl<F: Fn(isize, isize) -> isize> SegmentTree<F> {
 
         let mut tmp: SegmentTree<F> = SegmentTree {
             n,
-            node: vec![inf; 2*n-1],
-            inf,
+            node: vec![unit; 2*n-1],
+            unit,
             f,
         };
 
@@ -159,7 +159,7 @@ impl<F: Fn(isize, isize) -> isize> SegmentTree<F> {
     fn _get(&self, l: usize, r: usize, current: usize, ldx: usize, rdx: usize) -> isize {
         // 要求区間と対象区間が交わらない場合
         if (rdx <= l) || (r <= ldx) {
-            return self.inf;
+            return self.unit;
         }
         // 要求区間と対象区間が完全に含まれる場合
         if (l <= ldx) && (rdx <= r) {
