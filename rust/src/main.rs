@@ -56,11 +56,15 @@ fn bound_search<T: Ord, F: Fn(isize) -> bool>(v: &[T], target: T, cdn: F) -> usi
     right as usize
 }
 
-fn cumulative_sum<T: AddAssign + Copy + Default>(v: &[T], reverse: bool) -> Vec<T> {
-    let mut rlt: Vec<T> = Vec::with_capacity(v.len());
+fn cumulative_sum<'a, T, F, I>(v: &'a [T], f: F) -> Vec<T>
+where
+    T: AddAssign + Copy + Default,
+    F: FnOnce(&'a [T]) -> I,
+    I: Iterator<Item = &'a T> {
+    let mut rlt: Vec<T> = Vec::new();
     let mut cum: T = T::default();
 
-    for &x in if reverse { v.iter().rev().collect::<Vec<_>>() } else { v.into_iter().collect() } {
+    for &x in f(v) {
         cum += x;
         rlt.push(cum);
     }
@@ -130,9 +134,9 @@ impl<F: Fn(isize, isize) -> isize> SegmentTree<F> {
         };
 
         // vが葉になる。
-        for i in 0..size { tmp.node[i+n-1] = v[i]; }
+        for i in range!(size) { tmp.node[i+n-1] = v[i]; }
         // 親の値は子の2値から計算
-        for i in (0..n-1).rev() { tmp.node[i] = (tmp.f)(tmp.node[2*i+1], tmp.node[2*i+2]); }
+        for i in range!(n-1).into_iter().rev() { tmp.node[i] = (tmp.f)(tmp.node[2*i+1], tmp.node[2*i+2]); }
 
         tmp
     }
