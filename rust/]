@@ -34,6 +34,7 @@ fn yes(cdt: bool) {
 fn no(cdt: bool) {
     if !cdt {
         println!("No");
+        exit(0);
     }
 }
 
@@ -170,84 +171,11 @@ impl<F: Fn(isize, isize) -> isize> SegmentTree<F> {
     }
 }
 
-struct LazySegmentTree<F: Fn(isize, isize) -> isize> {
+struct LazySegmentTree {
     tree: SegmentTree<F>,
     lazy: Vec<isize>
 }
 
-impl<F: Fn(isize, isize) -> isize> LazySegmentTree<F> {
-    fn new(v: Vec<isize>, unit: isize, f: F) -> Self {
-        LazySegmentTree {
-            tree: SegmentTree::new(v.clone(), unit, f),
-            lazy: vec![0; 2*v.len()-1]
-        }
-    }
-
-    fn eval(&mut self, current: usize, l: usize, r: usize) {
-        // 遅延配列が空でないとき、自ノード以下へ伝播が起きる
-        if self.lazy[current] != 0 {
-            self.tree.node[current] = (self.tree.f)(self.lazy[current], self.tree.node[current]);
-
-            // 最下段かどうか
-            // 子は親の1/2の範囲なので、伝播させるときは半分にする
-            if r - l > 1 {
-                self.lazy[2*current+1] += self.lazy[current] * (r-l) as isize /2;
-                self.lazy[2*current+2] += self.lazy[current] * (r-l) as isize /2;
-            }
-
-            // 伝播が終わったら、自ノードの遅延配列を空にする
-            self.lazy[current] = 0;
-        }
-    }
-
-    fn update(&mut self, l: usize, r: usize, x: isize) {
-        self._update(l, r, x, 0, 0, self.tree.n);
-    }
-
-    fn _update(&mut self, l: usize, r: usize, x: isize, current: usize, ldx: usize, rdx: usize) {
-        // current番目に対して遅延評価
-        self.eval(current, ldx, rdx);
-
-        // 範囲外なら何もしない
-        if (r <= ldx) || (rdx <= l) {
-            return;
-        }
-
-        // 完全に被覆しているなら遅延配列に値をいれて、評価する
-        if (l <= ldx) && (rdx <= r) {
-            self.lazy[current] += (rdx-ldx) as isize *x;
-            self.eval(current, ldx, rdx);
-        }
-
-        // そうでないならば、子ノードの値を再帰的に計算して、
-        // 計算済みの値を貰ってくる
-        else {
-            self._update(l, r, x, 2*current+1, ldx, (ldx+rdx)/2);
-            self._update(l, r, x, 2*current+2, (ldx+rdx)/2, rdx);
-            self.tree.node[current] = (self.tree.f)(self.tree.node[2*current+1], self.tree.node[2*current+2]);
-        }
-    }
-
-    fn get(&mut self, l: usize, r: usize) {
-        self._get(l, r, 0, 0, self.tree.n);
-    }
-
-    fn _get(&mut self, l: usize, r: usize, current: usize, ldx: usize, rdx: usize) -> isize {
-        if (r <= ldx) || (rdx <= l) {
-            return 0;
-        }
-
-        self.eval(current, l, r);
-        if (l <= ldx) && (rdx <= r) {
-            return self.tree.node[current];
-        }
-
-        let vl = self._get(l, r, 2*current+1, ldx, (ldx+rdx)/2);
-        let vr = self._get(l, r, 2*current+2, (ldx+rdx)/2, rdx);
-
-        (self.tree.f)(vl, vr)
-    }
-}
 
 
 
