@@ -1,14 +1,34 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 #![allow(unused_variables)]
+#![allow(unused_braces)]
 
 use std::{
-    process::exit,
     collections::{
-        HashSet,
         HashMap,
+        HashSet,
     },
-    ops::AddAssign
+    io::{
+        self,
+        stdout,
+        Write,
+        BufRead,
+    },
+    ops::{
+        AddAssign,
+    },
+    process::{
+        exit,
+        Command, Stdio,
+    },
+    mem::{
+        swap,
+    },
+    cmp::{
+        min, min_by, min_by_key,
+        max, max_by, max_by_key,
+    },
+    env,
 };
 use proconio::{
     input,
@@ -19,6 +39,7 @@ use proconio::{
     },
 };
 use itertools::*;
+use rand::Rng;
 
 fn yes_no(cdt: bool) {
     println!("{}", if cdt { "Yes" } else { "No" })
@@ -34,6 +55,78 @@ fn yes(cdt: bool) {
 fn no(cdt: bool) {
     if !cdt {
         println!("No");
+        exit(0);
+    }
+}
+
+fn flush() {
+    stdout().flush().unwrap();
+}
+
+struct Eratosthenes {
+    is_prime: Vec<bool>,
+    minfactor: Vec<usize>,
+}
+
+impl Eratosthenes {
+    fn new(n: usize) -> Self {
+        let mut tmp: Eratosthenes = Eratosthenes {
+            is_prime: vec![true; n+1],
+            minfactor: vec![0; n+1],
+        };
+        tmp.is_prime[1] = false;
+        tmp.minfactor[1] = 1;
+
+        // 篩パート
+        for p in range!(2, n+1) {
+            // すでに合成数と判明しているときはスキップ
+            if !tmp.is_prime[p] { continue; }
+            // pについての情報更新
+            tmp.minfactor[p] = p;
+            // p以外のpの倍数から素数のラベルを剥がす
+            let mut q: usize = p * 2;
+            while q <= n {
+                // qは合成数になるので、落とす
+                tmp.is_prime[q] = false;
+                // qはpで割り切れるから更新
+                if tmp.minfactor[q] == 0 { tmp.minfactor[q] = p; }
+                q += p;
+            }
+        }
+        tmp
+    }
+
+    fn factorize(&self, mut n: usize) -> Vec<(usize, usize)> {
+        let mut rlt: Vec<(usize, usize)> = Vec::new();
+        while n > 1 {
+            let p: usize = self.minfactor[n];
+            let mut exp: usize = 0;
+            
+            // nで割り切れる限り割る
+            while self.minfactor[n] == p {
+                n /= p;
+                exp += 1;
+            }
+            rlt.push((p, exp));
+        }
+        rlt
+    }
+
+    fn divisors(&self, n: usize) -> Vec<usize> {
+        let mut rlt: Vec<usize> = vec![1];
+        let pf: Vec<(usize, usize)> = self.factorize(n);
+
+        for (p, exp) in pf {
+            let s: usize = rlt.len();
+            for i in range!(s) {
+                let mut v: usize = 1;
+                for j in range!(exp) {
+                    v *= p;
+                    rlt.push(rlt[i] * v);
+                }
+            }
+        }
+        rlt
     }
 }
 
@@ -53,15 +146,11 @@ fn bound_search<T: Ord, F: Fn(isize) -> bool>(v: &[T], target: T, cdn: F) -> usi
     right as usize
 }
 
-fn cumulative_sum<'a, T, F, I>(v: &'a [T], f: F) -> Vec<T>
-where
-    T: AddAssign + Copy + Default,
-    F: FnOnce(&'a [T]) -> I,
-    I: Iterator<Item = &'a T> {
-    let mut rlt: Vec<T> = Vec::new();
+fn cumulative_sum<T: AddAssign + Copy + Default>(v: &[T], reverse: bool) -> Vec<T> {
+    let mut rlt: Vec<T> = Vec::with_capacity(v.len());
     let mut cum: T = T::default();
 
-    for &x in f(v) {
+    for &x in if reverse { v.iter().rev().collect::<Vec<_>>() } else { v.into_iter().collect() } {
         cum += x;
         rlt.push(cum);
     }
@@ -109,15 +198,49 @@ fn zlgorithm<T: Ord>(s: &[T]) -> Vec<usize> {
     z
 }
 
-struct SegmentTree<F: Fn(isize, isize) -> isize> {
+struct FenwickTree<F: Fn(isize, isize) -> isize> {
     n: usize,
-    node: Vec<isize>,
+    bit: Vec<isize>,
     unit: isize,
     f: F
 }
 
+impl<F: Fn(isize, isize) -> isize> FenwickTree<F> {
+    fn new(n: usize, unit: isize, f: F) -> Self {
+        FenwickTree {
+            n,
+            bit: vec![unit; n], // 1-indexedじゃないと処理がめんどくさい
+            unit,
+            f
+        }
+    }
+
+    fn update(&mut self, mut idx: usize, x: isize) {
+        while idx <= self.n {
+            self.bit[idx] = (self.f)(self.bit[idx], x);
+            idx += idx & (!idx + 1);
+        }
+    }
+
+    fn get(&self, mut idx: usize) -> isize {
+        let mut s: isize = self.unit;
+        while idx > 0 {
+            s = (self.f)(s, self.bit[idx]);
+            idx -= idx & (!idx + 1);
+        }
+        s
+    }
+}
+
+struct SegmentTree<F: Fn(isize, isize) -> isize> {
+    n: usize,
+    node: Vec<isize>,
+    inf: isize,
+    f: F
+}
+
 impl<F: Fn(isize, isize) -> isize> SegmentTree<F> {
-    fn new(v: Vec<isize>, unit: isize, f: F) -> Self {
+    fn new(v: Vec<isize>, inf: isize, f: F) -> Self {
         // 全体のノード数は2*n-1
         let size: usize = v.len();
         let mut n: usize = 1;
@@ -125,15 +248,15 @@ impl<F: Fn(isize, isize) -> isize> SegmentTree<F> {
 
         let mut tmp: SegmentTree<F> = SegmentTree {
             n,
-            node: vec![unit; 2*n-1],
-            unit,
+            node: vec![inf; 2*n-1],
+            inf,
             f,
         };
 
         // vが葉になる。
-        for i in range!(size) { tmp.node[i+n-1] = v[i]; }
+        for i in 0..size { tmp.node[i+n-1] = v[i]; }
         // 親の値は子の2値から計算
-        for i in range!(n-1).into_iter().rev() { tmp.node[i] = (tmp.f)(tmp.node[2*i+1], tmp.node[2*i+2]); }
+        for i in (0..n-1).rev() { tmp.node[i] = (tmp.f)(tmp.node[2*i+1], tmp.node[2*i+2]); }
 
         tmp
     }
@@ -156,7 +279,7 @@ impl<F: Fn(isize, isize) -> isize> SegmentTree<F> {
     fn _get(&self, l: usize, r: usize, current: usize, ldx: usize, rdx: usize) -> isize {
         // 要求区間と対象区間が交わらない場合
         if (rdx <= l) || (r <= ldx) {
-            return self.unit;
+            return self.inf;
         }
         // 要求区間と対象区間が完全に含まれる場合
         if (l <= ldx) && (rdx <= r) {
@@ -228,8 +351,8 @@ impl<F: Fn(isize, isize) -> isize> LazySegmentTree<F> {
         }
     }
 
-    fn get(&mut self, l: usize, r: usize) {
-        self._get(l, r, 0, 0, self.tree.n);
+    fn get(&mut self, l: usize, r: usize) -> isize {
+        self._get(l, r, 0, 0, self.tree.n)
     }
 
     fn _get(&mut self, l: usize, r: usize, current: usize, ldx: usize, rdx: usize) -> isize {
@@ -249,22 +372,64 @@ impl<F: Fn(isize, isize) -> isize> LazySegmentTree<F> {
     }
 }
 
+struct UnionFind {
+    parents: Vec<isize>
+}
 
+impl UnionFind {
+    fn new(n: usize) -> Self {
+        UnionFind {
+            parents: vec![-1; n]
+        }
+    }
 
+    fn find(&mut self, x: usize) -> usize {
+        if self.parents[x] < 0 { return x; }
+        self.parents[x] = self.find(self.parents[x] as usize) as isize;
+        self.parents[x] as usize
+    }
 
-//////////////////////////////////////////////////
+    fn merge(&mut self, x: usize, y: usize) -> bool {
+        let mut vx: usize = self.find(x);
+        let mut vy: usize = self.find(y);
 
-fn main() {
-    input! {
-        n: usize,
-        a: [usize; n]
+        if vx == vy { return false; }
+
+        if self.parents[vx] > self.parents[vy] { swap(&mut vx, &mut vy); }
+
+        self.parents[vx] += self.parents[vy];
+        self.parents[vy] = vx as isize;
+
+        true
+    }
+
+    fn same(&mut self, x: usize, y: usize) -> bool {
+        self.find(x) == self.find(y)
+    }
+
+    fn size(&mut self, x: usize) -> usize {
+        let root: usize = self.find(x);
+        -self.parents[root] as usize
     }
 }
 
 //////////////////////////////////////////////////
 
+fn main() {
+    let er: Eratosthenes = Eratosthenes::new(50);
 
+    for i in range!(2, 50+1) {
+        let pf: Vec<(usize, usize)> = er.factorize(i);
+        print!("{i}: ");
+        for j in range!(pf.len()) {
+            if j > 0 { print!(" * "); }
+            print!("{} ^ {}", pf[j].0, pf[j].1);
+        }
+        println!();
+    }
+}
 
+//////////////////////////////////////////////////
 
 #[macro_export]
 macro_rules! printvec {
@@ -276,88 +441,13 @@ macro_rules! printvec {
 #[macro_export]
 macro_rules! range {
     ($finish: expr) => {
-        (0..$finish).collect::<Vec<_>>()
+        // (0..$finish).collect::<Vec<_>>()
+        (0..$finish)
     };
     ($start: expr, $finish: expr) => {
-        ($start..$finish).collect::<Vec<_>>()
+        ($start..$finish)
     };
     ($start: expr, $finish: expr, $step: expr) => {
-        ($start..$finish).step_by($step).collect::<Vec<_>>()
+        ($start..$finish).step_by($step).iter()
     }
 }
-
-/*
- * # Vector
- * insert(&mut self, idx: usize, elm: T)
- * remove(&mut self, idx: usize) -> T
- * push(&mut self, v: T)
- * pop(&mut self) -> Option<T>
- * clear(&mut self)
- * len(&mut self) -> usize
- * is_empty(&self) -> bool
- * swap(&mut self, a: usize, b: usize)
- * reverse(&mut self)
- * iter(&self) -> Iter<'_, T>
- * iter_mut(&mut self) -> IterMut<'_, T>
- * chunks(&self, chunk_size: usize) -> Chunks<'_, T>
- * chunks_mut(&mut self, chunk_size: usize) -> ChunksMut<'_, T>
- * chunk_by<F: FnMut(&T, &T) -> bool>(&self, pred: F) -> ChunkBy<'_, T, F>
- * chunk_by_mut<F: FnMut(&T, &T) -> bool>(&self, pred: F) -> ChunkByMut<'_, T, F>
- * contains(&self, x: &T) -> bool
- * starts_with(&self, needle: &[T]) -> bool
- * ends_with(&self, needle: &[T]) -> bool
- * sort(&mut self)
- * sort_by<F: FnMut(&T, &T) -> Ordering>(&mut self, compare: F)
- * sort_by_key<K: Ord, F: FnMut(&T) -> K>(&mut self, f: F)
- *
- * ---
- * # VecDeque
- *
- * len(&self) -> usize
- * is_empty(&self) -> bool
- * iter(&self) -> Iter<'_, A>
- * iter_mut(&self) -> IterMut<'_, A>
- * index_of(&self, v: &<A: PartialEq>) -> Option<usize>
- * contains(&self, v: &<A: PartialEq>) -> bool
- * swap(&mut self, i: usize, j: usize)
- * push_front(&mut self, v: A)
- * push_back(&mut self, v: A)
- * pop_front(&mut self) -> Option<A>
- * pop_back(&mut self) -> Option<A>
- * sort(&mut self)
- * sort_by<F>(&mut self, cmp: F)
- *
- * ---
- * # Iterator
- * 
- * step_by(self, step: usize) -> StepBy<Self>
- * chain<U: IntoIterator>(self, other: U) -> Chain<Self, <U as IntoIterator>::IntoIter>
- * zip<U: IntoIterator>(self, other: U) -> Zip<Self, <U as IntoIterator>::IntoIter>
- * map<B, F: FnMut(Self::Item) -> B>(self, f: F) -> Map<self, F>
- * filter<P: FnMut(&Self::Item) -> bool>(self, prd: P) -> Filter<Self, P>
- * enumurate(self) -> Enumurate<Self> = (i, &v)
- * flatten(self) -> Flatter<Self>
- * collect<B: FromIterator<Self::Item>>(self) -> B
- * fold<B, F: FnMut(B, Self::Item) -> B>(self, init: B, f: F) -> B
- * reduce<F: FnMut(Self::Item, Self::Item) -> Self::Item>(self, f: F) -> Option<Self::Item>
- * all<F: FnMut(Self::Item) -> bool>(&mut self, f: F) -> bool
- * any<F: FnMut(Self::Item) -> bool>(&mut self, f: F) -> bool
- * sum<S: Sum<Self::Item>>(self) -> S
- * product<P: Product<Self::Item>>(self) -> P
- * max(self) -> Option<Self::Item>
- * min(self) -> Option<Self::Item>
- * max_by_key<B: Ord, F: FnMut(&Self::Item) -> B>(self, f: F) -> Option<Self::Item>
- * max_by<F: FnMut(&Self::Item, &Self::Item) -> Ordering>(self, comp: F) -> Option<Self::Item>
- * min_by_key<B: Ord, F: FnMut(&Self::Item) -> B>(self, f: F) -> Option<Self::Item>
- * min_by<F: FnMut(&Self::Item, &Self::Item) -> Ordering>(self, comp: F) -> Option<Self::Item>
- * rev(self) -> Rev<Self>
- * copied<'a, T: 'a + Copy>(self) -> Copied<Self>
- * cloned<'a, T: 'a + Clone>(self) -> Cloned<Self>
- * cycle(self) -> Cycle<Self>
- * cmp<I: IntoIterator<Item = Self::Item>>(self, other: I) -> Ordering
- * cmp_by<I: IntoIterator, F: FnMut(Self::Item, <I as Intoiterator>::Item) -> Ordering>(self,
- * other: I, cmp: F) -> Ordering
- *
- * ---
- * # HashSet
- */
