@@ -146,6 +146,19 @@ fn bound_search<T: Ord, F: Fn(isize) -> bool>(v: &[T], target: T, cdn: F) -> usi
     right as usize
 }
 
+fn binary_search<F: Fn(isize) -> bool>(mut left: isize, mut right: isize, cdn: F) -> isize {
+    while right - left > 1 {
+        let middle: isize = left + (right - left) / 2;
+        if cdn(middle) {
+            left = middle;
+        } else {
+            right = middle;
+        }
+    }
+
+    right
+}
+
 fn cumulative_sum<T: AddAssign + Copy + Default>(v: &[T], reverse: bool) -> Vec<T> {
     let mut rlt: Vec<T> = Vec::with_capacity(v.len());
     let mut cum: T = T::default();
@@ -163,7 +176,7 @@ fn manacher<T: Ord>(s: &[T]) -> Vec<usize> {
     let mut a: Vec<usize> = vec![0; 2*n+1];
     let (mut i, mut j): (usize, usize) = (1, 1);
 
-    while i<= 2*n {
+    while i <= 2*n {
         // 1. 伸ばせるだけ伸ばす
         while (j < i) && (i+j < 2*n) && (s[(i-j)/2-1] == s[(i+j)/2]) { j += 2; }
         a[i] = j;
@@ -394,7 +407,6 @@ impl UnionFind {
         let mut vy: usize = self.find(y);
 
         if vx == vy { return false; }
-
         if self.parents[vx] > self.parents[vy] { swap(&mut vx, &mut vy); }
 
         self.parents[vx] += self.parents[vy];
@@ -416,17 +428,7 @@ impl UnionFind {
 //////////////////////////////////////////////////
 
 fn main() {
-    let er: Eratosthenes = Eratosthenes::new(50);
-
-    for i in range!(2, 50+1) {
-        let pf: Vec<(usize, usize)> = er.factorize(i);
-        print!("{i}: ");
-        for j in range!(pf.len()) {
-            if j > 0 { print!(" * "); }
-            print!("{} ^ {}", pf[j].0, pf[j].1);
-        }
-        println!();
-    }
+    println!("{}", binary_search(0, 100, |x| x*x*x <= 600));
 }
 
 //////////////////////////////////////////////////
@@ -441,7 +443,6 @@ macro_rules! printvec {
 #[macro_export]
 macro_rules! range {
     ($finish: expr) => {
-        // (0..$finish).collect::<Vec<_>>()
         (0..$finish)
     };
     ($start: expr, $finish: expr) => {
