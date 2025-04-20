@@ -1,5 +1,5 @@
 # vscode setting
-.vscode
+**/.vscode
 
 # compile output file
 **/a.out
@@ -8,5 +8,10 @@
 # venv directory
 **/vv
 
-# log
-**/*.log
+# others
+**/input
+**/output
+**/program
+
+# random_test
+python/random_test.py
