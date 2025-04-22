@@ -1,17 +1,17 @@
 #include <algorithm>
 #include <climits>
 #include <cstdio>
+#include <cstdlib>
 #include <deque>
 #include <functional>
-#include <ios>
 #include <iostream>
-#include <iterator>
 #include <ostream>
-#include <stack>
-#include <tuple>
-#include <unordered_set>
+#include <set>
+#include <string>
 #include <utility>
 #include <vector>
+
+constexpr char el = '\n';
 
 using ll = long long;
 using namespace std;
@@ -20,21 +20,28 @@ using CGraph = vector<vector<pair<ll, ll>>>;
 
 void yes(bool cdt) {
     if (cdt) {
-      cout << "Yes" << endl;
+      cout << "Yes" << el;
       exit(0);
     }
   }
 
 void no(bool cdt) {
   if (!cdt) {
-    cout << "No" << endl;
+    cout << "No" << el;
     exit(0);
   }
 }
 
 void yes_no(bool cdt) {
-  cout << (cdt ? "Yes" : "No") << endl;
+  cout << (cdt ? "Yes" : "No") << el;
   exit(0);
+}
+
+template <typename T>
+void printvec(const vector<T> array) {
+	cout << "! ";
+	for(T elm: array) cout << elm << " ";
+	cout << el;
 }
 
 template <typename T>
@@ -67,6 +74,46 @@ T binary_search(T left, T right, const function<bool(T)> cdt) {
 	return right;
 }
 
+class SegmentTree {
+	public:
+		ll n = 1;
+		vector<ll> node;
+		ll identify;
+		function<ll(ll, ll)> f;
+		SegmentTree(vector<ll> array, ll identify, function<ll(ll, ll)> f) {
+			ll size = array.size();
+			while (n < size) n <<= 1;
+
+			node.assign(2*n-1, identify);
+			this -> identify = identify;
+			this -> f = f;
+
+			for(ll i=0; i<size; i++) this->node[i+n-1] = array[i];
+			for(ll i=n-2; 0<=i; --i) this->node[i] = (this->f)(this->node[2*i+1], this->node[2*i+2]);
+		}
+
+		void update(ll idx, ll v) {
+			idx += this->n-1;
+			this->node[idx] = v;
+			while(idx > 0) {
+				idx = (idx-1)/2;
+				this->node[idx] = (this->f)(this->node[2*idx+1], this->node[2*idx+2]);
+			}
+		}
+
+		ll get(ll l, ll r, ll current=0, ll ldx=0, ll rdx=-1) {
+			if (rdx == -1) rdx = this->n;
+			if (rdx <= l || r <= ldx) return this->identify;
+			if (l <= ldx && rdx <= r) return this->node[current];
+			ll mid = (ldx+rdx)/2;
+			ll vl = this->get(l, r, 2*current+1, ldx, mid);
+			ll vr = this->get(l, r, 2*current+2, mid, rdx);
+			return (this->f)(vl, vr);
+		}
+};
+
+
 int main(void) {
 
+	return 0;
 }
