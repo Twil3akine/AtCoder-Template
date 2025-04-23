@@ -6,15 +6,26 @@
 #include <functional>
 #include <iostream>
 #include <ostream>
+#include <queue>
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
 
+#define scanf1(x) ll x; scanf("%lld", &x);
+#define scanf2(x, y) ll x, y; scanf("%lld%lld", &x, &y);
+#define scanf3(x, y, z) ll x, y, z; scanf("%lld%lld%lld", &x, &y, &z);
+#define scanf4(v, x, y, z) ll v, x, y, z; scanf("%lld%lld%lld%lld", &v &x, &y, &z);
+
+#define printf1(x) printf("%lld\n", x);
+
 constexpr char el = '\n';
 
 using ll = long long;
+const ll MOD = 1e9+7;
+const ll INF = 1LL << 60;
 using namespace std;
+
 using Graph = vector<vector<ll>>;
 using CGraph = vector<vector<pair<ll, ll>>>;
 
@@ -111,7 +122,6 @@ class SegmentTree {
 			return (this->f)(vl, vr);
 		}
 };
-
 
 int main(void) {
 
