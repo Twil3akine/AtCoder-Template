@@ -5,19 +5,15 @@
 #include <deque>
 #include <functional>
 #include <iostream>
+#include <map>
 #include <ostream>
 #include <queue>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <utility>
+#include <valarray>
 #include <vector>
-
-#define scanf1(x) ll x; scanf("%lld", &x);
-#define scanf2(x, y) ll x, y; scanf("%lld%lld", &x, &y);
-#define scanf3(x, y, z) ll x, y, z; scanf("%lld%lld%lld", &x, &y, &z);
-#define scanf4(v, x, y, z) ll v, x, y, z; scanf("%lld%lld%lld%lld", &v &x, &y, &z);
-
-#define printf1(x) printf("%lld\n", x);
 
 constexpr char el = '\n';
 
@@ -124,6 +120,8 @@ class SegmentTree {
 };
 
 int main(void) {
+	ios::sync_with_stdio(false);
+	cin.tie(nullptr);
 
 	return 0;
 }
