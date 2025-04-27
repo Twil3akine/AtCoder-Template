@@ -130,7 +130,7 @@ impl Eratosthenes {
     }
 }
 
-fn bound_search<T: Ord, F: Fn(isize) -> bool>(v: &[T], target: T, cdn: F) -> usize {
+fn bound_search<T: Ord, F: Fn(isize) -> bool>(v: &[T], cdn: F) -> usize {
     let mut left: isize = -1;
     let mut right: isize = v.len() as isize - 1;
 
