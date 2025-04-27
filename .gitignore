@@ -6,7 +6,8 @@
 **/target
 
 # venv directory
-**/vv
+**/.env
+**/venv
 
 # others
 **/input
@@ -14,4 +15,6 @@
 **/program
 
 # random_test
-python/random_test.py
+**/python/random_test.py
+
+**/dir

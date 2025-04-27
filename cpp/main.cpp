@@ -6,14 +6,17 @@
 #include <functional>
 #include <iostream>
 #include <map>
+#include <numeric>
 #include <ostream>
 #include <queue>
 #include <set>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <utility>
 #include <valarray>
 #include <vector>
+#include <cmath>
 
 constexpr char el = '\n';
 
@@ -24,6 +27,12 @@ using namespace std;
 
 using Graph = vector<vector<ll>>;
 using CGraph = vector<vector<pair<ll, ll>>>;
+
+template <typename... Args>
+void out(const Args&... args) {
+    ((cout << args << " "), ...);
+    cout << '\n';
+}
 
 void yes(bool cdt) {
     if (cdt) {
@@ -122,6 +131,10 @@ class SegmentTree {
 int main(void) {
 	ios::sync_with_stdio(false);
 	cin.tie(nullptr);
+
+	ll n; cin >> n;
+
+
 
 	return 0;
 }
