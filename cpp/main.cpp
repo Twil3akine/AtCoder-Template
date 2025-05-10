@@ -34,10 +34,14 @@ const ll INF = 1LL << 60;
 
 using namespace std;
 
-using Graph = vector<vector<ll>>;
-using CGraph = vector<vector<pair<ll, ll>>>;
+template <typename T>
+using Graph = vector<vector<T>>;
 
-using Grid = vector<vector<char>>;
+template <typename T>
+using CGraph = vector<vector<pair<ll, T>>>;
+
+template <typename T>
+using Grid = vector<vector<T>>;
 
 // ==================================================
 
@@ -114,7 +118,7 @@ void print_ncontainer(const T& x) {
 template <typename T>
 class RotatedGrid {
 	private:
-		vector<vector<T>> content;
+		Grid<T> content;
 
 	public:
 		T rotate_element(ll n, ll row, ll col) const {
@@ -132,7 +136,7 @@ class RotatedGrid {
 			n = ((n%4)+4)%4;
 			ll size = content.size();
 
-			vector<vector<T>> rotated(size, vector<T>(size));
+			Grid<T> rotated(size, vector<T>(size));
 
 			for (ll r=0; r<size; r++) for (ll c=0; c<size; c++) {
 				rotated[r][c] = rotate_element(n, r, c);
@@ -176,6 +180,22 @@ class RotatedGrid {
 
 		RotatedGrid(vector<vector<T>> grid) : content(grid) {}
 
+		auto begin() const {
+			return content.begin();
+		}
+
+		auto end() const {
+			return content.end();
+		}
+
+		const vector<T>& operator[](ll idx) const {
+			return content[idx];
+		}
+
+		vector<T>& operator[](ll idx) {
+			return content[idx];
+		}
+
 		T operator<(tuple<ll, ll, ll> t) const {
 			ll n = get<0>(t), row = get<1>(t), col = get<2>(t);
 			return this->rotate_element(((n%4)+4)%4, row, col);
@@ -214,14 +234,6 @@ class RotatedGrid {
 		RotatedGrid& operator|=(int) {
 			vertical();
 			return *this;
-		}
-
-		auto begin() const {
-			return content.begin();
-		}
-
-		auto end() const {
-			return content.end();
 		}
 };
 
@@ -286,48 +298,11 @@ class SegmentTree {
 // ==================================================
 
 int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr);
 
-		vector<vector<char>> s;
-		s = {
-			{'#', '.', '.'},
-			{'.', '.', '.'},
-			{'.', '.', '.'},
-		};
+	
 
-		cout << "Base grid: " << el;
-		print_ncontainer(s);
-
-		RotatedGrid<char> rgs(s);
-
-		cout << "Right Rotate: " << el;
-		for (ll i=0; i<4; i++) {
-			rgs >>= 1 ;
-			print_ncontainer(rgs);
-			cout << el;
-		}
-
-		cout << "Left Rotate: " << el;
-		for (ll i=0; i<4; i++) {
-			rgs <<= 1 ;
-			print_ncontainer(rgs);
-			cout << el;
-		}
-
-		cout << "Horizontal:" << el;
-		for (ll i=0; i<2; i++) {
-			rgs.horizontal();
-			print_ncontainer(rgs);
-			cout << el;
-		}
-
-		cout << "Vertical: " << el;
-		for (ll i=0; i<2; i++) {
-			rgs.vertical();
-			print_ncontainer(rgs);
-			cout << el;
-		}
-
-    return 0;
+  return 0;
 }
+
