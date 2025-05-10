@@ -1,7 +1,7 @@
 all: run
 
-program: execute.cpp
-	@g++ execute.cpp -o program
+program: main.cpp
+	@g++ -std=c++23 -Wall -Wextra -O2 main.cpp -o program
 
 run: program
 	@./program
