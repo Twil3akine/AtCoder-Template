@@ -239,6 +239,43 @@ class RotatedGrid {
 
 // ==================================================
 
+ll pow(ll x, ll p) {
+	ll rlt = 1;
+	while (p) {
+		if (p&1) rlt *= x;
+		x *= x;
+		p >>= 1;
+	}
+	return rlt;
+}
+
+ll pow(ll x, ll p, ll mod) {
+	ll rlt = 1;
+	while (p) {
+		if (p&1) rlt = rlt * x % mod;
+		x = x * x % mod;
+		p >>= 1;
+	}
+	return rlt;
+}
+
+ll binGCD(ll x, ll y, ll k=0) {
+	if (x == 0) return y << k;
+	if (y == 0) return x << k;
+
+	if (x < y) swap(x, y);
+
+	if (x&1 && y&1) return binGCD((x-y)>>1, y, k);
+	else if (!(x&1 || y&1)) return binGCD(x>>1, y>>1, k+1);
+	else return binGCD((x&1 ? x : x>>1), (y&1 ? y : y>>1), k);
+}
+
+ll lcm(ll x, ll y) {
+	return (x*y == 0) ? 0 : (x*y)/binGCD(x, y);
+}
+
+// ==================================================
+
 template <typename T>
 T binary_search(T left, T right, const function<bool(T)> cdt) {
 	while (right - left > 1) {
@@ -301,8 +338,9 @@ int main() {
   ios::sync_with_stdio(false);
   cin.tie(nullptr);
 
-	
+	ll x, y; cin >> x >> y;
+	const ll MOD = 1000000007;
+	cout << pow(x, y, MOD) << el;
 
   return 0;
 }
-
