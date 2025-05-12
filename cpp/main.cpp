@@ -6,8 +6,10 @@
 #include <deque>
 #include <functional>
 #include <iostream>
+#include <istream>
 #include <iterator>
 #include <limits>
+#include <locale>
 #include <map>
 #include <numeric>
 #include <ostream>
@@ -24,15 +26,41 @@
 #include <vector>
 #include <cmath>
 #include <concepts>
+#include <type_traits>
 
 // ==================================================
+
+// 定数とかの宣言
+
+using namespace std;
 
 constexpr char el = '\n';
 
 using ll = long long;
-const ll INF = 1LL << 60;
+const ll INF = 5LL << 60;
 
-using namespace std;
+// ==================================================
+
+// 前方宣言とか、型判定？の定義
+
+template <ll MOD>
+class ModInt;
+
+template <typename T>
+struct is_integrals : is_integral<T> {};
+
+template <ll MOD>
+struct is_integrals<ModInt<MOD>> : true_type {};
+
+template <typename T>
+inline constexpr bool is_integrals_v = is_integrals<T>::value;
+
+template <typename T>
+using integer = enable_if_t<is_integrals_v<T>>;
+
+// ==================================================
+
+// データ型の定義
 
 template <typename T>
 using Graph = vector<vector<T>>;
@@ -45,6 +73,8 @@ using Grid = vector<vector<T>>;
 
 // ==================================================
 
+// 引数まとめて出力関数
+
 template <typename... Args>
 void out(const Args&... args) {
     ((cout << args << " "), ...);
@@ -53,14 +83,19 @@ void out(const Args&... args) {
 
 // ==================================================
 
-void yes_print(bool cdt) {
+// 解答出力関数
+// yes(true) -> yes; exit
+// no(false) -> yes; exit
+// yes(bool) -> (bool ? yes : no); exit
+
+void yes_print(bool cdt=true) {
     if (cdt) {
       cout << "Yes" << el;
       exit(0);
     }
   }
 
-void no_print(bool cdt) {
+void no_print(bool cdt=false) {
   if (!cdt) {
     cout << "No" << el;
     exit(0);
@@ -73,6 +108,8 @@ void yes_no_print(bool cdt) {
 }
 
 // ==================================================
+
+// イテレータ出力関数( iter, stack, queue, priority_queue, 多次元配列 )
 
 template <typename Container>
 auto print_container(const Container& c) -> decltype(c.begin(), void()) {
@@ -114,6 +151,8 @@ void print_ncontainer(const T& x) {
 }
 
 // ==================================================
+
+// 上下左右回転反転可能二次元正方行列
 
 template <typename T>
 class RotatedGrid {
@@ -239,6 +278,67 @@ class RotatedGrid {
 
 // ==================================================
 
+// 剰余整数型(long long)
+
+template <ll MOD>
+class ModInt {
+	private:
+		ll val;
+
+		static constexpr ll normalize(ll x) {
+			x %= MOD;
+			if (x < 0) x += MOD;
+			return x;
+		}
+
+	public:
+		template <typename T, typename = integer<T>>
+		ModInt(T v=0) : val(normalize(static_cast<ll>(v))) {}
+		ModInt() : val(normalize(static_cast<ll>(0))) {}
+
+		operator ll() const { return val; }
+
+		template <typename T> ModInt operator+(T rhs) { return ModInt(val + ModInt(rhs)); }
+		template <typename T> ModInt operator-(T rhs) { return ModInt(val - ModInt(rhs)); }
+		template <typename T> ModInt operator*(T rhs) { return ModInt(val * ModInt(rhs)); }
+		template <typename T> ModInt operator/(T rhs) { return *this * ModInt(rhs).inv(); }
+
+		template <typename T> ModInt& operator+=(T rhs) { return *this = *this + rhs; }
+		template <typename T> ModInt& operator-=(T rhs) { return *this = *this - rhs; }
+		template <typename T> ModInt& operator*=(T rhs) { return *this = *this * rhs; }
+		template <typename T> ModInt& operator/=(T rhs) { return *this = *this / rhs; }
+
+		ModInt pow(ll exp) const {
+			ModInt res(1), base(val);
+			while (exp) {
+				if (exp & 1) res *= base;
+				base *= base;
+				exp >>= 1;
+			}
+			return res;
+		}
+
+		ModInt inv() const {
+			return pow(MOD - 2);
+		}
+};
+
+template <ll MOD>
+ostream& operator<<(ostream& os, const ModInt<MOD>& m) {
+	return os << static_cast<ll>(m);
+}
+
+template <ll MOD>
+istream& operator>>(istream& is, ModInt<MOD>& m) {
+	ll x; is >> x;
+	m = ModInt<MOD>(x);
+	return is;
+}
+		
+// ==================================================
+
+// 繰り返し二乗法
+
 ll pow(ll x, ll p) {
 	ll rlt = 1;
 	while (p) {
@@ -259,6 +359,8 @@ ll pow(ll x, ll p, ll mod) {
 	return rlt;
 }
 
+// binary Greater Common Divisor
+
 ll binGCD(ll x, ll y, ll k=0) {
 	if (x == 0) return y << k;
 	if (y == 0) return x << k;
@@ -270,11 +372,15 @@ ll binGCD(ll x, ll y, ll k=0) {
 	else return binGCD((x&1 ? x : x>>1), (y&1 ? y : y>>1), k);
 }
 
+// Least Common Multiple
+
 ll lcm(ll x, ll y) {
 	return (x*y == 0) ? 0 : (x*y)/binGCD(x, y);
 }
 
 // ==================================================
+
+// 二分探索
 
 template <typename T>
 T binary_search(T left, T right, const function<bool(T)> cdt) {
@@ -291,6 +397,8 @@ T binary_search(T left, T right, const function<bool(T)> cdt) {
 }
 
 // ==================================================
+
+// セグメント木
 
 class SegmentTree {
 	private:
@@ -338,9 +446,12 @@ int main() {
   ios::sync_with_stdio(false);
   cin.tie(nullptr);
 
-	ll x, y; cin >> x >> y;
-	const ll MOD = 1000000007;
-	cout << pow(x, y, MOD) << el;
+	const ll MOD = 17;
+	ll a, b; cin >> a >> b;
+	out(a+b, a-b, a*b, a/b);
+
+	ModInt<MOD> ma =ModInt<MOD>(a), mb = ModInt<MOD>(b);
+	out(ma+mb, ma-mb, ma*mb, ma/mb);
 
   return 0;
 }
