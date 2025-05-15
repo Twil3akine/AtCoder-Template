@@ -6,5 +6,8 @@ program: main.cpp
 run: program
 	@./program
 
+remove:
+	@rm -rf in* out*
+
 clean:
 	@rm -f program

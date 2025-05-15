@@ -28,6 +28,9 @@
 #include <concepts>
 #include <type_traits>
 
+#define rep(i, begin, end) for (ll i=begin; i<end; i++)
+#define rrep(i, begin, end) for (ll i=begin; i<end; i--)
+
 // ==================================================
 
 // 定数とかの宣言
@@ -61,6 +64,7 @@ using integer = enable_if_t<is_integrals_v<T>>;
 // ==================================================
 
 // データ型の定義
+using Visited = vector<vector<bool>>;
 
 template <typename T>
 using Graph = vector<vector<T>>;
@@ -446,12 +450,7 @@ int main() {
   ios::sync_with_stdio(false);
   cin.tie(nullptr);
 
-	const ll MOD = 17;
-	ll a, b; cin >> a >> b;
-	out(a+b, a-b, a*b, a/b);
 
-	ModInt<MOD> ma =ModInt<MOD>(a), mb = ModInt<MOD>(b);
-	out(ma+mb, ma-mb, ma*mb, ma/mb);
 
   return 0;
 }
