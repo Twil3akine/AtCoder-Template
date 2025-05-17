@@ -1,13 +1,18 @@
-all: run
+all: execute
 
 program: main.cpp
 	@g++ -std=c++23 -Wall -Wextra -O2 main.cpp -o program
 
-run: program
+execute: program
 	@./program
 
-remove:
-	@rm -rf in* out*
+run: program
+	@for f in in*; do\
+		echo "========== Running with $$f =========="; \
+		echo ""; \
+		./program < $$f; \
+		echo ""; \
+	done
 
 clean:
-	@rm -f program
+	@rm -f program in* out*
