@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <cassert>
+#include <cctype>
 #include <climits>
 #include <cstddef>
 #include <cstdio>
@@ -18,6 +20,7 @@
 #include <stack>
 #include <string>
 #include <sys/types.h>
+#include <system_error>
 #include <tuple>
 #include <type_traits>
 #include <unordered_map>
@@ -28,8 +31,9 @@
 #include <concepts>
 #include <type_traits>
 
-#define rep(i, begin, end) for (ll i=begin; i<end; i++)
-#define rrep(i, begin, end) for (ll i=begin; i<end; i--)
+#define vec vector
+#define rep(i, begin, end) for (ll i=(ll)(begin); i<(ll)(end); i++)
+#define rrep(i, begin, end) for (ll i=(ll)(begin)-1; (ll)(end)<=i; --i)
 
 // ==================================================
 
@@ -106,9 +110,10 @@ void no_print(bool cdt=false) {
   }
 }
 
-void yes_no_print(bool cdt) {
+void yes_no_print(bool cdt, bool fin=true) {
   cout << (cdt ? "Yes" : "No") << el;
-  exit(0);
+
+	if (fin) exit(0);
 }
 
 // ==================================================
@@ -443,6 +448,53 @@ class SegmentTree {
 			return (this->f)(vl, vr);
 		}
 };
+
+// ==================================================
+
+class UnionFind {
+	private:
+		vector<ll> content;
+		function<bool(ll, ll)> f;
+
+	public:
+		UnionFind(ll n) : content(n+1, -1), f([](ll, ll) { return true; }) {}
+		UnionFind(ll n, function<bool(ll, ll)> f) : content(n+1, -1), f(f) {}
+
+		ll search(ll target) {
+			if (content[target] < 0) return target;
+
+			return content[target] = search(content[target]);
+		}
+
+		void connect(ll from, ll to) {
+			if (!f(from, to)) swap(from, to);
+
+			ll target = search(to);
+			if (!check(search(from), search(to))) content[from] = target;
+			content[target]--;
+		}
+
+		bool check(ll x, ll y) {
+			return (x == y) || (search(x) == search(y));
+		}
+
+		ll size(ll target) {
+			return -content[search(target)]-1;
+		}
+
+		void print() {
+			print_container(content);
+		}
+};
+
+// ==================================================
+
+const ll dx[] = { 1, 0, -1, 0 };
+const ll dy[] = { 0, -1, 0, 1 };
+
+bool is_in_range(ll value, ll bottom, ll top) {
+	return (bottom <= value) && (value < top);
+}
 
 // ==================================================
 
