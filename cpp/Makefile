@@ -14,5 +14,12 @@ run: program
 		echo ""; \
 	done
 
+op: program
+	@for f in in*; do \
+		out=out$${f#in}; \
+		echo "========== Generating $$out from $$f =========="; \
+		./program < $$f > $$out; \
+	done
+
 clean:
-	@rm -f program in* out*
+	@rm -f program in* out* ./a.out
