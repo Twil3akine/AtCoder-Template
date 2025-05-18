@@ -489,6 +489,74 @@ class UnionFind {
 
 // ==================================================
 
+template <typename T>
+class BTree {
+	private:
+		struct Node {
+			T value;
+			Node* left;
+			Node* right;
+
+			Node(T value): value(value), left(nullptr), right(nullptr) {}
+		};
+
+		Node* root;
+
+		Node* insertRecursive(Node* node, T value) {
+			if (node == nullptr) {
+				return new Node(value);
+			}
+			if (value < node->value) {
+				node->left = insertRecursive(node->left, value);
+			} else if (value > node->value) {
+				node->right = insertRecursive(node->right, value);
+			}
+			return node;
+		}
+
+		bool searchRecursive(Node* node, T value) {
+			if (node == nullptr) return false;
+
+			if (node->value == value) {
+				return true;
+			} else if (node->value < value) {
+				return searchRecursive(node->right, value);
+			} else if (node->value > value) {
+				return searchRecursive(node->left, value);
+			}
+		}
+
+		// bool removeRecursive(Node* node, T value) {
+			// if (node == nullptr) return false;
+// 
+			// if (node->value == value) {
+// 
+				// return true;
+			// } else if (node->value < value) {
+				// return removeRecursive(node->right, value);
+			// } else if (node->value > value) {
+				// return removeRecursive(node->left, value);
+			// }
+		// }
+
+	public:
+		BTree(): root(nullptr) {}
+
+		void insert(T value) {
+			root = insertRecursive(root, value);
+		}
+
+		bool search(T value) {
+			return searchRecursive(root, value);
+		}
+
+		// bool remove(T value) {
+			// return removeRecursive(root, value);
+		// }
+};
+
+// ==================================================
+
 const ll dx[] = { 1, 0, -1, 0 };
 const ll dy[] = { 0, -1, 0, 1 };
 
