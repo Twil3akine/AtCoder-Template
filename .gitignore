@@ -10,8 +10,8 @@
 **/venv
 
 # others
-**/input
-**/output
+**/in*
+**/out*
 **/program
 
 # random_test

@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <deque>
 #include <functional>
 #include <iostream>
@@ -66,9 +67,6 @@ template <typename T>
 using integer = enable_if_t<is_integrals_v<T>>;
 
 // ==================================================
-
-// データ型の定義
-using Visited = vector<vector<bool>>;
 
 template <typename T>
 using Graph = vector<vector<T>>;
@@ -387,6 +385,44 @@ ll lcm(ll x, ll y) {
 	return (x*y == 0) ? 0 : (x*y)/binGCD(x, y);
 }
 
+// LCS (longest Common Subsequence)
+string lcs(string& s, string& t) {
+	ll h = s.size(), w = t.size();
+	
+	Grid<ll> dp(h+1, vec<ll>(w+1, 0));
+	
+	rep(i, 1, h+1) {
+		rep(j, 1, w+1) {
+			if (s[i-1] == t[j-1]) {
+				dp[i][j] = dp[i-1][j-1]+1;
+			}
+			else {
+				if (dp[i-1][j] >= dp[i][j-1]) {
+					dp[i][j] = dp[i-1][j];
+				} else {
+					dp[i][j] = dp[i][j-1];
+				}
+			}
+		}
+	}
+
+	string lcs; lcs.reserve(dp[h][w]);
+	ll i = h, j = w;
+	while (i > 0 && j > 0) {
+		if (s[i-1] == t[j-1]) {
+			lcs += s[i-1];
+			i--; j--;
+		} else if (dp[i-1][j] >= dp[i][j-1]) {
+			i--;
+		} else {
+			j--;
+		}
+	}
+	reverse(lcs.begin(), lcs.end());
+
+	return lcs;
+}
+
 // ==================================================
 
 // 二分探索
@@ -490,69 +526,92 @@ class UnionFind {
 // ==================================================
 
 template <typename T>
-class BTree {
+class BinaryTree {
 	private:
 		struct Node {
 			T value;
 			Node* left;
 			Node* right;
+			ll height;
 
-			Node(T value): value(value), left(nullptr), right(nullptr) {}
+			Node(T value): value(value), left(nullptr), right(nullptr), height(0) {}
 		};
 
 		Node* root;
+		function<bool(const T&, const T&)> f;
 
-		Node* insertRecursive(Node* node, T value) {
+		void modelCheck(Node*& node) const  {
+			
+		}
+
+		Node* insert(Node*& node, const T value) {
 			if (node == nullptr) {
 				return new Node(value);
-			}
-			if (value < node->value) {
-				node->left = insertRecursive(node->left, value);
-			} else if (value > node->value) {
-				node->right = insertRecursive(node->right, value);
+			} else if (f(node->value, value)) {
+				node->left = insert(node->left, value);
+			} else {
+				node->right = insert(node->right, value);
 			}
 			return node;
 		}
 
-		bool searchRecursive(Node* node, T value) {
+		bool search(Node*& node, const T value) const {
 			if (node == nullptr) return false;
 
 			if (node->value == value) {
 				return true;
-			} else if (node->value < value) {
-				return searchRecursive(node->right, value);
-			} else if (node->value > value) {
-				return searchRecursive(node->left, value);
+			} else if (f(node->value, value)) {
+				return search(node->right, value);
+			} else {
+				return search(node->left, value);
 			}
 		}
 
-		// bool removeRecursive(Node* node, T value) {
-			// if (node == nullptr) return false;
-// 
-			// if (node->value == value) {
-// 
-				// return true;
-			// } else if (node->value < value) {
-				// return removeRecursive(node->right, value);
-			// } else if (node->value > value) {
-				// return removeRecursive(node->left, value);
-			// }
-		// }
+		bool remove(Node*& node, const T value) {
+			if (node == nullptr) return false;
+
+			if (node->value == value) {
+				if (node->left == nullptr && node->right == nullptr) {
+					delete node;
+					node = nullptr;
+				} else if (node->left == nullptr) {
+					Node* tmp = node;
+					node = node->right;
+					delete tmp;
+				} else if (node->right == nullptr) {
+					Node* tmp = node;
+					node = node->left;
+					delete tmp;
+				} else {
+					Node *explorer = node->right;
+					while (explorer->left != nullptr) explorer = explorer->left;
+					node->value = explorer->value;
+					remove(node->right, explorer->value);
+				}
+	
+				return true;
+			} else if (f(node->value, value)) {
+				return remove(node->right, value);
+			} else {
+				return remove(node->left, value);
+			}
+		}
 
 	public:
-		BTree(): root(nullptr) {}
+		BinaryTree(): root(nullptr), f([](const T& x, const T& y) { return x < y; }) {}
+		BinaryTree(function<bool(const T&, const T&)> f): root(nullptr), f(f) {}
 
-		void insert(T value) {
-			root = insertRecursive(root, value);
+		void insert(const T value) {
+			root = insert(root, value);
 		}
 
-		bool search(T value) {
-			return searchRecursive(root, value);
+		bool search(const T value) const {
+			return search(root, value);
 		}
 
-		// bool remove(T value) {
-			// return removeRecursive(root, value);
-		// }
+		bool remove(const T value) {
+			return remove(root, value);
+		}
 };
 
 // ==================================================
