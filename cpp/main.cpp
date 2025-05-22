@@ -1,8 +1,10 @@
 #include <algorithm>
+#include <bitset>
 #include <cassert>
 #include <cctype>
 #include <climits>
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -19,6 +21,7 @@
 #include <queue>
 #include <set>
 #include <stack>
+#include <stdexcept>
 #include <string>
 #include <sys/types.h>
 #include <system_error>
@@ -158,6 +161,40 @@ void print_ncontainer(const T& x) {
 		cout << x << " ";
 	}
 }
+
+// ==================================================
+
+class tool {
+	int8_t value;
+
+	public:
+		constexpr tool(ll val=0): value((val == 0 ? 0 : (val > 0 ? 1 : -1))) {}
+
+		static const tool zero;
+		static const tool plus;
+		static const tool minus;
+
+		constexpr operator int8_t() const { return value; }
+		constexpr operator bool() const { return value != 0; }
+
+		friend constexpr bool operator==(tool a, tool b) { return a.value == b.value; }
+		friend constexpr bool operator!=(tool a, tool b) { return !(a == b); }
+
+		friend ostream& operator<<(ostream& os, const tool& t) {
+			switch (t.value) {
+				case 0: return os << "zero";
+				case 1: return os << "plus";
+				case -1: return os << "minus";
+				default: return os << "INVALID";
+			}
+		}
+
+		constexpr int8_t raw() const { return value; }
+};
+
+const tool tool::zero{0};
+const tool tool::plus{1};
+const tool tool::minus{-1};
 
 // ==================================================
 
