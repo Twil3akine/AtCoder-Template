@@ -35,6 +35,8 @@
 #define vec vector
 #define rep(i, begin, end) for (ll i=(ll)(begin); i<(ll)(end); i++)
 #define rrep(i, begin, end) for (ll i=(ll)(begin)-1; (ll)(end)<=i; --i)
+#define chmax(x, y) (x = max(x, y))
+#define chmin(x, y) (x = min(x, y))
 
 // ==================================================
 
