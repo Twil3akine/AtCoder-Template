@@ -38,8 +38,6 @@
 #define vec vector
 #define rep(i, begin, end) for (ll i=(ll)(begin); i<(ll)(end); i++)
 #define rrep(i, begin, end) for (ll i=(ll)(begin)-1; (ll)(end)<=i; --i)
-#define chmax(x, y) (x = max(x, y))
-#define chmin(x, y) (x = min(x, y))
 
 // ==================================================
 
@@ -51,6 +49,12 @@ constexpr char el = '\n';
 
 using ll = long long;
 const ll INF = 5LL << 60;
+
+template <typename T>
+void chmin(T& x, const T& y) { x = min(x, y); }
+
+template <typename T>
+void chmax(T& x, const T& y) { x = max(x, y); }
 
 // ==================================================
 
@@ -127,6 +131,11 @@ template <typename Container>
 auto print_container(const Container& c) -> decltype(c.begin(), void()) {
 	for (const auto& x: c) cout << x << " ";
 	cout << el;
+}
+
+template <typename T1, typename T2>
+void print_container(const pair<T1, T2>& p) {
+	cout << "(" << p.first << ", " << p.second << ")" << el;
 }
 
 template <typename T>
