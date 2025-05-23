@@ -576,90 +576,115 @@ class UnionFind {
 template <typename T>
 class BinaryTree {
 	private:
+		ll _size = 0;
+
 		struct Node {
 			T value;
 			Node* left;
 			Node* right;
 			ll height;
 
-			Node(T value): value(value), left(nullptr), right(nullptr), height(0) {}
+			T subtree_min;
+			T subtree_max;
+			T subtree_sum;
+
+			Node(T value): value(value), left(nullptr), right(nullptr), height(0), subtree_min(value), subtree_max(value), subtree_sum(value) {}
 		};
 
 		Node* root;
 		function<bool(const T&, const T&)> f;
+		
+		void update(Node* node) {
+			if (!node) return;
 
-		void modelCheck(Node*& node) const  {
-			
+			node->subtree_min = node->value;
+			node->subtree_max = node->value;
+			node->subtree_sum = node->value;
+
+			if (node->left) {
+				node->subtree_min = std::min(node->subtree_min, node->left->subtree_min);
+				node->subtree_max = std::max(node->subtree_max, node->left->subtree_max);
+				node->subtree_sum += node->left->subtree_sum;
+			}
+
+			if (node->right) {
+				node->subtree_min = std::min(node->subtree_min, node->right->subtree_min);
+				node->subtree_max = std::max(node->subtree_max, node->right->subtree_max);
+				node->subtree_sum += node->right->subtree_sum;
+			}
 		}
 
 		Node* insert(Node*& node, const T value) {
-			if (node == nullptr) {
+			if (!node) {
+				_size++;
 				return new Node(value);
-			} else if (f(node->value, value)) {
+			}
+
+			if (node->value == value) return node;
+
+			if (f(node->value, value)) {
 				node->left = insert(node->left, value);
 			} else {
 				node->right = insert(node->right, value);
 			}
+			update(node);
 			return node;
 		}
 
 		bool search(Node*& node, const T value) const {
-			if (node == nullptr) return false;
+			if (!node) return false;
+			if (node->value == value) return true;
 
-			if (node->value == value) {
-				return true;
-			} else if (f(node->value, value)) {
-				return search(node->right, value);
-			} else {
-				return search(node->left, value);
-			}
+			if (f(node->value, value)) return search(node->right, value);
+			else return search(node->left, value);
 		}
 
-		bool remove(Node*& node, const T value) {
-			if (node == nullptr) return false;
+		Node* findMin(Node* node) const {
+			while (node && node->left) node = node->left;
+			return node;
+		}
+
+		Node* remove(Node*& node, const T value) {
+			if (!node) return nullptr;
 
 			if (node->value == value) {
-				if (node->left == nullptr && node->right == nullptr) {
+				if (!node->left) {
+					Node* r = node->right;
 					delete node;
-					node = nullptr;
-				} else if (node->left == nullptr) {
-					Node* tmp = node;
-					node = node->right;
-					delete tmp;
-				} else if (node->right == nullptr) {
-					Node* tmp = node;
-					node = node->left;
-					delete tmp;
+					_size--;
+					return r;
+				} else if (!node->right) {
+					Node* l = node->left;
+					delete node;
+					_size--;
+					return l;
 				} else {
-					Node *explorer = node->right;
-					while (explorer->left != nullptr) explorer = explorer->left;
-					node->value = explorer->value;
-					remove(node->right, explorer->value);
+					Node* succ = findMin(node->right);
+					node->value = succ->value;
+					node->right = remove(node->right, succ->value);
 				}
-	
-				return true;
 			} else if (f(node->value, value)) {
-				return remove(node->right, value);
+				node->left = remove(node->left, value);
 			} else {
-				return remove(node->left, value);
+				node->right = remove(node->right, value);
 			}
+
+			update(node);
+			return node;
 		}
 
 	public:
 		BinaryTree(): root(nullptr), f([](const T& x, const T& y) { return x < y; }) {}
 		BinaryTree(function<bool(const T&, const T&)> f): root(nullptr), f(f) {}
 
-		void insert(const T value) {
-			root = insert(root, value);
-		}
+		void insert(const T value) { root = insert(root, value); }
+		bool search(const T value) const { return search(root, value); }
+		bool remove(const T value) { return remove(root, value); }
 
-		bool search(const T value) const {
-			return search(root, value);
-		}
-
-		bool remove(const T value) {
-			return remove(root, value);
-		}
+		T size() const { return _size; }
+		T min() const { return root ? root->subtree_min : LLONG_MAX; }
+		T max() const { return root ? root->subtree_max : LLONG_MIN; }
+		T sum() const { return root ? root->subtree_sum : 0; }
 };
 
 // ==================================================
