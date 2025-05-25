@@ -38,7 +38,8 @@
 #define vec vector
 #define rep(i, begin, end) for (ll i=(ll)(begin); i<(ll)(end); i++)
 #define rrep(i, begin, end) for (ll i=(ll)(begin)-1; (ll)(end)<=i; --i)
-
+#define drep(i, j, ibegin, iend, jbegin, jend) rep(i, ibegin, iend) rep(j, jbegin, jend)
+#define trep(i, j, k, ibegin, iend, jbegin, jend, kbegin, kend) rep(i, ibegin, iend) rep(j, jbegin, jend) rep(k, kbegin, kend)
 // ==================================================
 
 // 定数とかの宣言
@@ -492,7 +493,6 @@ T binary_search(T left, T right, const function<bool(T)> cdt) {
 // ==================================================
 
 // セグメント木
-
 class SegmentTree {
 	private:
 		ll n = 1;
