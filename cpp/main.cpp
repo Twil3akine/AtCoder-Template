@@ -36,10 +36,28 @@
 #include <type_traits>
 
 #define vec vector
-#define rep(i, begin, end) for (ll i=(ll)(begin); i<(ll)(end); i++)
-#define rrep(i, begin, end) for (ll i=(ll)(begin)-1; (ll)(end)<=i; --i)
-#define drep(i, j, ibegin, iend, jbegin, jend) rep(i, ibegin, iend) rep(j, jbegin, jend)
-#define trep(i, j, k, ibegin, iend, jbegin, jend, kbegin, kend) rep(i, ibegin, iend) rep(j, jbegin, jend) rep(k, kbegin, kend)
+
+// マクロオーバーロード用のヘルパー
+#define GET_MACRO(_1, _2, _3, NAME, ...) NAME
+
+#define REP1(n) for (ll i=0; i<(ll)(n); i++)
+#define REP2(i, n) for (ll i=0; i<(ll)(n); i++)
+#define REP3(i, begin, end) for (ll i=(ll)(begin); i<(ll)(end); i++)
+#define rep(...) GET_MACRO(__VA_ARGS__, REP3, REP2, REP1)(__VA_ARGS__)
+
+#define RREP1(n) for (ll i=(ll)(n)-1; i>=0; i--)
+#define RREP2(i, n) for (ll i=(ll)(n)-1; i>=0; i--)
+#define RREP3(i, begin, end) for (ll i=(ll)(end)-1; i>=(ll)(begin); i--)
+#define rrep(...) GET_MACRO(__VA_ARGS__, RREP3, RREP2, RREP1)(__VA_ARGS__)
+
+#define drep(i, j, ibegin, iend, jbegin, jend) \
+	rep(i, ibegin, iend) rep(j, jbegin, jend)
+
+#define trep(i, j, k, ibegin, iend, jbegin, jend, kbegin, kend) \
+	rep(i, ibegin, iend) rep(j, jbegin, jend) rep(k, kbegin, kend)
+
+#define arep(elm, iter) for (auto&& elm: iter)
+
 // ==================================================
 
 // 定数とかの宣言
