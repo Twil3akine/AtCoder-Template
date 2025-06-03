@@ -9,7 +9,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <deque>
+#include <exception>
 #include <functional>
+#include <future>
 #include <iostream>
 #include <istream>
 #include <iterator>
@@ -74,25 +76,6 @@ void chmin(T& x, const T& y) { x = min(x, y); }
 
 template <typename T>
 void chmax(T& x, const T& y) { x = max(x, y); }
-
-// ==================================================
-
-// 前方宣言とか、型判定？の定義
-
-template <ll MOD>
-class ModInt;
-
-template <typename T>
-struct is_integrals : is_integral<T> {};
-
-template <ll MOD>
-struct is_integrals<ModInt<MOD>> : true_type {};
-
-template <typename T>
-inline constexpr bool is_integrals_v = is_integrals<T>::value;
-
-template <typename T>
-using integer = enable_if_t<is_integrals_v<T>>;
 
 // ==================================================
 
@@ -353,6 +336,8 @@ class RotatedGrid {
 // ==================================================
 
 // 剰余整数型(long long)
+template <typename T>
+using integer = enable_if_t<is_integral_v<T>>;
 
 template <ll MOD>
 class ModInt {
@@ -510,49 +495,6 @@ T binary_search(T left, T right, const function<bool(T)> cdt) {
 
 // ==================================================
 
-// セグメント木
-class SegmentTree {
-	private:
-		ll n = 1;
-		vector<ll> node;
-		ll identify;
-		function<ll(ll, ll)> f;
-
-	public:
-		SegmentTree(vector<ll>& array, ll identify, function<ll(ll, ll)> f) {
-			ll size = array.size();
-			while (n < size) n <<= 1;
-
-			node.assign(2*n-1, identify);
-			this -> identify = identify;
-			this -> f = f;
-
-			for(ll i=0; i<size; i++) this->node[i+n-1] = array[i];
-			for(ll i=n-2; 0<=i; --i) this->node[i] = (this->f)(this->node[2*i+1], this->node[2*i+2]);
-		}
-
-		void update(ll idx, ll v) {
-			idx += this->n-1;
-			this->node[idx] = v;
-			while(idx > 0) {
-				idx = (idx-1)/2;
-				this->node[idx] = (this->f)(this->node[2*idx+1], this->node[2*idx+2]);
-			}
-		}
-
-		ll get(ll l, ll r, ll current=0, ll ldx=0, ll rdx=-1) {
-			if (rdx == -1) rdx = this->n;
-			if (rdx <= l || r <= ldx) return this->identify;
-			if (l <= ldx && rdx <= r) return this->node[current];
-			ll mid = (ldx+rdx)/2;
-			ll vl = this->get(l, r, 2*current+ 1, ldx, mid);
-			ll vr = this->get(l, r, 2*current+2, mid, rdx);
-			return (this->f)(vl, vr);
-		}
-};
-
-// ==================================================
-
 class UnionFind {
 	private:
 		vector<ll> content;
@@ -707,12 +649,134 @@ class BinaryTree {
 
 // ==================================================
 
+template <typename T>
+class SegmentTree {
+	protected:
+		using F = function<T(T, T)>;
+
+		ll n = 1;
+		vector<T> node;
+		T identify;
+		F f;
+
+	public:
+		SegmentTree(
+			vector<T>& array, 
+			T identify,
+			F f
+		) : identify(identify), f(f) {
+			ll size = array.size();
+			while (n < size) n <<= 1;
+
+			node.assign(2*n-1, identify);
+
+			for(ll i=0; i<size; i++) node[i+n-1] = array[i];
+			for(ll i=n-2; 0<=i; --i) node[i] = f(node[2*i+1], node[2*i+2]);
+		}
+
+		void update(ll idx, ll v) {
+			idx += n-1;
+			node[idx] = v;
+			while(idx > 0) {
+				idx = (idx-1)/2;
+				node[idx] = f(node[2*idx+1], node[2*idx+2]);
+			}
+		}
+
+		ll get(ll l, ll r, ll current=0, ll ldx=0, ll rdx=-1) {
+			if (rdx == -1) rdx = n;
+			if (rdx <= l || r <= ldx) return identify;
+			if (l <= ldx && rdx <= r) return node[current];
+			ll mid = (ldx+rdx)/2;
+			ll vl = get(l, r, 2*current+1, ldx, mid);
+			ll vr = get(l, r, 2*current+2, mid, rdx);
+			return f(vl, vr);
+		}
+
+		void display_node(void) {
+			print_container(node);
+		}
+};
+
+// ==================================================
+
+template <typename T, typename U>
+class LazySegmentTree: public SegmentTree<T> {
+	private:
+		using G = function<T(T, U)>;
+		using H = function<U(U, U)>;
+
+		vec<U> lazy;
+		G g;
+		H h;
+		U lazy_identity;
+
+		void push(ll current, ll ldx, ll rdx) {
+			if (lazy[current] == lazy_identity) return;
+
+			this->node[current] = g(this->node[current], lazy[current]);
+
+			if (rdx-ldx > 1) {
+				lazy[2*current+1] = h(lazy[2*current+1], lazy[current]);
+				lazy[2*current+2] = h(lazy[2*current+2], lazy[current]);
+			}
+
+			lazy[current] = lazy_identity;
+		}
+
+	public:
+		LazySegmentTree(
+				vector<T>& array,
+				T identify,
+				U lazy_identity,
+				typename SegmentTree<T>::F f,
+				G g,
+				H h
+		) : SegmentTree<T>(array, identify, f), g(g), h(h), lazy_identity(lazy_identity) {
+			lazy.assign(2*this->n-1, lazy_identity);
+		}
+
+		void update(ll l, ll r, U v, ll current=0, ll ldx=0, ll rdx=-1) {
+			if (rdx == -1) rdx = this->n;
+			push(current, ldx, rdx);
+
+			if (rdx <= l || r <= ldx) return;
+			if (l <= ldx && rdx <= r) {
+				lazy[current] = h(lazy[current], v);
+				push(current, ldx, rdx);
+				return;
+			}
+			ll mid = (ldx+rdx)/2;
+			update(l, r, v, 2*current+1, ldx, mid);
+			update(l, r, v, 2*current+2, mid, rdx);
+			this->node[current] = this->f(this->node[2*current+1], this->node[2*current+2]);
+		}
+
+		T get(ll l, ll r, ll current=0, ll ldx=0, ll rdx=-1) {
+			if (rdx == -1) rdx = this->n;
+			push(current, ldx, rdx);
+
+			if (rdx <= l || r <= ldx) return this->identify;
+			if (l <= ldx && rdx <= r) return this->node[current];
+			ll mid = (ldx+rdx)/2;
+			T vl = get(l, r, 2*current+1, ldx, mid);
+			T vr = get(l, r, 2*current+2, mid, rdx);
+			return this->f(vl, vr);
+		}
+};
+
+// ==================================================
+
 const ll dx[] = { 1, 0, -1, 0 };
 const ll dy[] = { 0, -1, 0, 1 };
 
 bool is_in_range(ll value, ll bottom, ll top) {
 	return (bottom <= value) && (value < top);
 }
+
+const auto MAX = [](const ll x, const ll y) { return max(x, y); };
+const auto MIN = [](const ll x, const ll y) { return min(x, y); };
+const auto SUM = [](const ll x, const ll y) { return x+y; };
 
 // ==================================================
 
