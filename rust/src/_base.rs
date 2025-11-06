@@ -2,15 +2,10 @@
 #![allow(unused)]
 
 use std::{
-    clone::Clone,
-    cmp::{max, min, Ord},
-    collections::VecDeque,
-    convert::From,
-    io::*,
-    iter::{zip, Iterator},
-    process::exit,
-    vec::{self, Vec},
+    clone::Clone, cmp::{Ord, max, min}, io::*, iter::{Iterator, zip}, process::exit
 };
+
+use itertools::Itertools;
 
 pub struct Scanner<R: std::io::BufRead> {
     pub reader: R,
@@ -362,32 +357,5 @@ impl Writer<std::io::StdoutLock<'static>> {
 impl<W: Write> Drop for Writer<W> {
     fn drop(&mut self) {
         self.writer.flush().unwrap();
-    }
-}
-
-const MOD998: u64 = 998_244_353;
-
-fn mod_pow(mut base: u64, mut exp: u64, modulus: u64) -> u64 {
-    let mut res = 1;
-    base %= modulus;
-
-    while exp > 0 {
-        if exp % 2 == 1 {
-            res = (res * base) % modulus;
-        }
-        base = (base * base) % modulus;
-        exp /= 2;
-    }
-
-    res
-}
-
-fn main() {
-    let mut sc = Scanner::new();
-    let mut wr = Writer::new();
-
-    input! {
-        sc,
-
     }
 }
