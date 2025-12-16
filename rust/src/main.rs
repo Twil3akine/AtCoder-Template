@@ -2,14 +2,13 @@
 #![allow(unused)]
 
 use std::{
-    clone::Clone,
     cmp::{max, min, Ord},
-    collections::VecDeque,
+    collections::{HashMap, HashSet, VecDeque},
     convert::From,
     io::*,
     iter::{zip, Iterator},
+    option::Option,
     process::exit,
-    vec::{self, Vec},
 };
 
 pub struct Scanner<R: std::io::BufRead> {
@@ -338,6 +337,18 @@ impl<W: Write> Writer<W> {
         writeln!(self.writer, "{}", s).unwrap();
     }
 
+    pub fn print_yes_no(&mut self, cnd: bool) {
+        self.println(if cnd == true { "Yes" } else { "No" });
+    }
+
+    pub fn print_yes(&mut self) {
+        self.print_yes_no(true);
+    }
+
+    pub fn print_no(&mut self) {
+        self.print_yes_no(false);
+    }
+
     pub fn join<S: std::fmt::Display, I: IntoIterator<Item = S>>(&mut self, iter: I, sep: &str) {
         let mut it = iter.into_iter();
         if let Some(first) = it.next() {
@@ -348,6 +359,10 @@ impl<W: Write> Writer<W> {
             }
         }
         self.println(""); // 最後に改行
+    }
+
+    pub fn join_whitespace<S: std::fmt::Display, I: IntoIterator<Item = S>>(&mut self, iter: I) {
+        self.join(iter, " ");
     }
 }
 
@@ -366,6 +381,7 @@ impl<W: Write> Drop for Writer<W> {
 }
 
 const MOD998: u64 = 998_244_353;
+const DIRECTIONS: [(isize, isize); 4] = [(0, 1), (0, -1), (1, 0), (-1, 0)];
 
 fn mod_pow(mut base: u64, mut exp: u64, modulus: u64) -> u64 {
     let mut res = 1;
