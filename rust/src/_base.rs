@@ -2,14 +2,10 @@
 #![allow(unused)]
 
 use std::{
-    cmp::{max, min, Ord},
-    collections::{HashMap, HashSet, VecDeque},
-    convert::From,
-    io::*,
-    iter::{zip, Iterator},
-    option::Option,
-    process::exit,
+    clone::Clone, cmp::{Ord, max, min}, io::*, iter::{Iterator, zip}, process::exit
 };
+
+use itertools::Itertools;
 
 pub struct Scanner<R: std::io::BufRead> {
     pub reader: R,
@@ -337,18 +333,6 @@ impl<W: Write> Writer<W> {
         writeln!(self.writer, "{}", s).unwrap();
     }
 
-    pub fn print_yes_no(&mut self, cnd: bool) {
-        self.println(if cnd == true { "Yes" } else { "No" });
-    }
-
-    pub fn print_yes(&mut self) {
-        self.print_yes_no(true);
-    }
-
-    pub fn print_no(&mut self) {
-        self.print_yes_no(false);
-    }
-
     pub fn join<S: std::fmt::Display, I: IntoIterator<Item = S>>(&mut self, iter: I, sep: &str) {
         let mut it = iter.into_iter();
         if let Some(first) = it.next() {
@@ -359,10 +343,6 @@ impl<W: Write> Writer<W> {
             }
         }
         self.println(""); // 最後に改行
-    }
-
-    pub fn join_whitespace<S: std::fmt::Display, I: IntoIterator<Item = S>>(&mut self, iter: I) {
-        self.join(iter, " ");
     }
 }
 
@@ -378,52 +358,4 @@ impl<W: Write> Drop for Writer<W> {
     fn drop(&mut self) {
         self.writer.flush().unwrap();
     }
-}
-
-const MOD998: u64 = 998_244_353;
-const DIRECTIONS: [(isize, isize); 4] = [(0, 1), (-1, 0), (0, -1), (1, 0)]; // 右, 上, 左, 下
-
-fn main() {
-    let mut sc = Scanner::new();
-    let mut wr = Writer::new();
-
-    input! {
-        sc,
-        n: usize,
-        a: [usize; n]
-    }
-
-    // jを決め打ちして、それより小さいやつと大きいやつの2場面で求めたい
-    // Ajが5の倍数じゃないとだめ
-    let mut ans: usize = 0;
-
-    let mut map_right: HashMap<usize, usize> = HashMap::new();
-    for &i in &a {
-        let entry = map_right.entry(i).or_default();
-        *entry += 1;
-    }
-
-    let mut map_left: HashMap<usize, usize> = HashMap::new();
-
-    for &aj in &a {
-        let entry = map_right.entry(aj).or_default();
-        *entry -= 1;
-
-        if aj % 5 == 0 {
-            // 左の処理
-            if map_left.contains_key(&(aj / 5 * 3)) && map_left.contains_key(&(aj / 5 * 7)) {
-                ans += map_left[&(aj / 5 * 3)] * map_left[&(aj / 5 * 7)];
-            }
-
-            // 右の処理
-            if map_right.contains_key(&(aj / 5 * 3)) && map_right.contains_key(&(aj / 5 * 7)) {
-                ans += map_right[&(aj / 5 * 3)] * map_right[&(aj / 5 * 7)];
-            }
-        }
-
-        let entry = map_left.entry(aj).or_default();
-        *entry += 1;
-    }
-    
-    wr.println(ans);
 }
