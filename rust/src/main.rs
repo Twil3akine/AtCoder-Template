@@ -381,22 +381,7 @@ impl<W: Write> Drop for Writer<W> {
 }
 
 const MOD998: u64 = 998_244_353;
-const DIRECTIONS: [(isize, isize); 4] = [(0, 1), (0, -1), (1, 0), (-1, 0)];
-
-fn mod_pow(mut base: u64, mut exp: u64, modulus: u64) -> u64 {
-    let mut res = 1;
-    base %= modulus;
-
-    while exp > 0 {
-        if exp % 2 == 1 {
-            res = (res * base) % modulus;
-        }
-        base = (base * base) % modulus;
-        exp /= 2;
-    }
-
-    res
-}
+const DIRECTIONS: [(isize, isize); 4] = [(0, 1), (-1, 0), (0, -1), (1, 0)]; // 右, 上, 左, 下
 
 fn main() {
     let mut sc = Scanner::new();
@@ -404,6 +389,41 @@ fn main() {
 
     input! {
         sc,
-
+        n: usize,
+        a: [usize; n]
     }
+
+    // jを決め打ちして、それより小さいやつと大きいやつの2場面で求めたい
+    // Ajが5の倍数じゃないとだめ
+    let mut ans: usize = 0;
+
+    let mut map_right: HashMap<usize, usize> = HashMap::new();
+    for &i in &a {
+        let entry = map_right.entry(i).or_default();
+        *entry += 1;
+    }
+
+    let mut map_left: HashMap<usize, usize> = HashMap::new();
+
+    for &aj in &a {
+        let entry = map_right.entry(aj).or_default();
+        *entry -= 1;
+
+        if aj % 5 == 0 {
+            // 左の処理
+            if map_left.contains_key(&(aj / 5 * 3)) && map_left.contains_key(&(aj / 5 * 7)) {
+                ans += map_left[&(aj / 5 * 3)] * map_left[&(aj / 5 * 7)];
+            }
+
+            // 右の処理
+            if map_right.contains_key(&(aj / 5 * 3)) && map_right.contains_key(&(aj / 5 * 7)) {
+                ans += map_right[&(aj / 5 * 3)] * map_right[&(aj / 5 * 7)];
+            }
+        }
+
+        let entry = map_left.entry(aj).or_default();
+        *entry += 1;
+    }
+    
+    wr.println(ans);
 }
