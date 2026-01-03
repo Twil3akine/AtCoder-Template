@@ -4,6 +4,8 @@ version = "0.55.57"
 edition = "2021"
 
 [dependencies]
-proconio = "0.4.5"
 itertools = "0.10"
+rand = "0.8.5"
+
+[dev-dependencies]
 rand = "0.8.5"
