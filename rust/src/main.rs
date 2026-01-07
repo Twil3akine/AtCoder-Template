@@ -11,6 +11,18 @@ use std::{
     process::exit,
 };
 
+// ローカル実行時だけ eprintln! を実行
+#[cfg(debug_assertions)]
+macro_rules! debug {
+    ($($arg:tt)*) => { eprintln!($($arg)*) };
+}
+
+// リリースビルド時は eprintln! を何もしないコードに変える
+#[cfg(not(debug_assertions))]
+macro_rules! debug {
+    ($($arg:tt)*) => {};
+}
+
 pub struct Scanner<R: std::io::BufRead> {
     pub reader: R,
     pub buf_str: Vec<u8>,
@@ -390,40 +402,6 @@ fn main() {
     input! {
         sc,
         n: usize,
-        a: [usize; n]
+        a: [usize; n],
     }
-
-    // jを決め打ちして、それより小さいやつと大きいやつの2場面で求めたい
-    // Ajが5の倍数じゃないとだめ
-    let mut ans: usize = 0;
-
-    let mut map_right: HashMap<usize, usize> = HashMap::new();
-    for &i in &a {
-        let entry = map_right.entry(i).or_default();
-        *entry += 1;
-    }
-
-    let mut map_left: HashMap<usize, usize> = HashMap::new();
-
-    for &aj in &a {
-        let entry = map_right.entry(aj).or_default();
-        *entry -= 1;
-
-        if aj % 5 == 0 {
-            // 左の処理
-            if map_left.contains_key(&(aj / 5 * 3)) && map_left.contains_key(&(aj / 5 * 7)) {
-                ans += map_left[&(aj / 5 * 3)] * map_left[&(aj / 5 * 7)];
-            }
-
-            // 右の処理
-            if map_right.contains_key(&(aj / 5 * 3)) && map_right.contains_key(&(aj / 5 * 7)) {
-                ans += map_right[&(aj / 5 * 3)] * map_right[&(aj / 5 * 7)];
-            }
-        }
-
-        let entry = map_left.entry(aj).or_default();
-        *entry += 1;
-    }
-    
-    wr.println(ans);
 }
