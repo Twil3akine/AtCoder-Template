@@ -1,7 +1,9 @@
-n = int(input())
-a = list(map(int, input().split()))
+from collections import deque
 
-s = set()
-l = []
-for i in range(n):
-	
+ip = input
+rg = range
+DY, DX = [-1, 0, 1, 0], [0, 1, 0, -1]
+
+
+def mip(f=int):
+    return map(f, ip().split())
