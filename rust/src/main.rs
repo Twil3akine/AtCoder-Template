@@ -215,34 +215,42 @@ macro_rules! impl_fast_math {
 
 impl_fast_math!(i32, i64, isize, u32, u64, usize);
 
+struct Xorshift {
+    seed: u64,
+}
 
-    let mut map_right: HashMap<usize, usize> = HashMap::new();
-    for &i in &a {
-        let entry = map_right.entry(i).or_default();
-        *entry += 1;
-    }
-
-    let mut map_left: HashMap<usize, usize> = HashMap::new();
-
-    for &aj in &a {
-        let entry = map_right.entry(aj).or_default();
-        *entry -= 1;
-
-        if aj % 5 == 0 {
-            // 左の処理
-            if map_left.contains_key(&(aj / 5 * 3)) && map_left.contains_key(&(aj / 5 * 7)) {
-                ans += map_left[&(aj / 5 * 3)] * map_left[&(aj / 5 * 7)];
-            }
-
-            // 右の処理
-            if map_right.contains_key(&(aj / 5 * 3)) && map_right.contains_key(&(aj / 5 * 7)) {
-                ans += map_right[&(aj / 5 * 3)] * map_right[&(aj / 5 * 7)];
-            }
+impl Xorshift {
+    fn new(seed: u64) -> Self {
+        Xorshift {
+            seed: if seed == 0 { 88172645463325252 } else { seed },
         }
-
-        let entry = map_left.entry(aj).or_default();
-        *entry += 1;
     }
-    
-    wr.println(ans);
+
+    fn next(&mut self) -> u64 {
+        self.seed ^= self.seed << 13;
+        self.seed ^= self.seed >> 7;
+        self.seed ^= self.seed << 17;
+        self.seed
+    }
+
+    // min 以上 max 以下の乱数を返す (usize用)
+    fn next_range(&mut self, min: usize, max: usize) -> usize {
+        min + (self.next() as usize % (max - min + 1))
+    }
+
+    // 0.0 以上 1.0 未満の乱数を返す
+    fn next_f64(&mut self) -> f64 {
+        self.next() as f64 / u64::MAX as f64
+    }
+}
+
+const MOD998: i64 = 998_244_353;
+const DIRECTIONS: [(isize, isize); 4] = [(0, 1), (-1, 0), (0, -1), (1, 0)]; // 右, 上, 左, 下
+fn main() {
+    let mut sc = Scanner::new();
+    let mut wr = Writer::new();
+
+    input!(
+        sc,
+    );
 }
