@@ -170,22 +170,51 @@ impl<W: Write> Drop for Writer<W> {
     }
 }
 
-const MOD998: u64 = 998_244_353;
-const DIRECTIONS: [(isize, isize); 4] = [(0, 1), (-1, 0), (0, -1), (1, 0)]; // 右, 上, 左, 下
+trait FastMath {
+    fn fast_pow(self, n: Self) -> Self;
+    fn mod_pow(self, n: Self, m: Self) -> Self;
+    fn mod_inv(self, m: Self) -> Self;
+}
+macro_rules! impl_fast_math {
+    ($($t:ty), *) => {
+        $(
+            impl FastMath for $t {
+                fn fast_pow(mut self, mut n: Self) -> Self {
+                    let mut res: $t = 1;
+                    while n > 0 {
+                        if n & 1 == 1 {
+                            res *= self;
+                        }
+                        self *= self;
+                        n >>= 1;
+                    }
 
-fn main() {
-    let mut sc = Scanner::new();
-    let mut wr = Writer::new();
+                    res
+                }
 
-    input! {
-        sc,
-        n: usize,
-        a: [usize; n]
-    }
+                fn mod_pow(mut self, mut n: Self, m: Self) -> Self {
+                    self %= m;
+                    let mut res: $t = 1;
+                    while n > 0 {
+                        if n & 1 == 1 {
+                            res = (res *self) % m;
+                        }
+                        self = (self * self) % m;
+                        n >>= 1;
+                    }
+                    res
+                }
 
-    // jを決め打ちして、それより小さいやつと大きいやつの2場面で求めたい
-    // Ajが5の倍数じゃないとだめ
-    let mut ans: usize = 0;
+                fn mod_inv(self, m: Self) -> Self {
+                    self.mod_pow(m-2, m)
+                }
+            }
+        )*
+    };
+}
+
+impl_fast_math!(i32, i64, isize, u32, u64, usize);
+
 
     let mut map_right: HashMap<usize, usize> = HashMap::new();
     for &i in &a {
