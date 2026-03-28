@@ -15,6 +15,14 @@ use std::{
 
 use itertools::Itertools;
 
+// ローカル実行時(デバッグビルド)だけ eprintln! を実行
+macro_rules! debug {
+    ($($arg:tt)*) => {
+        #[cfg(debug_assertions)]
+        eprintln!($($arg)*)
+    };
+}
+
 pub struct Scanner<R: std::io::BufRead> {
     pub reader: R,
     pub buf_str: Vec<u8>,
