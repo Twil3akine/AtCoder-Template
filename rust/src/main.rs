@@ -49,278 +49,56 @@ impl Scanner<std::io::StdinLock<'static>> {
     }
 }
 
-macro_rules! read_tuple_element {
-    ($sc:expr, usize1) => {
-        $sc.token::<usize>() - 1
+// --- 読み込み処理を再帰的に展開するヘルパーマクロ ---
+#[macro_export]
+macro_rules! read_value {
+    // 1. タプル (例: (usize, i32, chars))
+    ($sc:expr, ($($t:tt),*)) => {
+        ( $(read_value!($sc, $t)),* )
     };
-    ($sc:expr, isize1) => {
-        $sc.token::<isize>() - 1
+
+    // 2. 配列 (例: [usize; n], [[isize1; w]; h], [(usize, usize); m])
+    ($sc:expr, [$t:tt; $len:expr]) => {
+        (0..$len).map(|_| read_value!($sc, $t)).collect::<Vec<_>>()
     };
+
+    // 3. 特殊型: chars (文字列を Vec<char> に変換)
     ($sc:expr, chars) => {
         $sc.token::<String>().chars().collect::<Vec<char>>()
     };
-    ($sc:expr, $ty:ty) => {
-        $sc.token::<$ty>()
+
+    // 4. 特殊型: usize1 (1-indexed を 0-indexed の usize に変換)
+    ($sc:expr, usize1) => {
+        $sc.token::<usize>() - 1
+    };
+
+    // 5. 特殊型: isize1 (1-indexed を 0-indexed の isize に変換)
+    ($sc:expr, isize1) => {
+        $sc.token::<isize>() - 1
+    };
+
+    // 6. 通常の型 (usize, i64, String, f64 など)
+    ($sc:expr, $t:ty) => {
+        $sc.token::<$t>()
     };
 }
 
-macro_rules! tuple_element_type {
-    (usize1) => { usize };
-    (isize1) => { isize };
-    (chars) => { Vec<char> };
-    ($ty:ty) => { $ty };
-}
-
-// input! マクロ本体
+// --- ユーザーが呼び出す input! マクロ ---
+#[macro_export]
 macro_rules! input {
-    // 再帰が終了したときの空のルール
-    ($sc:expr, ) => {};
-    ($sc:expr) => {};
+    // 再帰終了のベースケース (末尾カンマあり/なし両対応)
+    ($sc:expr $(,)*) => {};
 
-    // --- mut ありのルール ---
-
-    // (追加) タプルの配列 mut
-    ($sc:expr, mut $var:ident: [($($tys:tt),+); $len:expr], $($rest:tt)*) => {
-        let mut $var: Vec<($(tuple_element_type!($tys)),+)> = (0..$len).map(|_| (
-            $(read_tuple_element!($sc, $tys)),+
-        )).collect();
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, mut $var:ident: [($($tys:tt),+); $len:expr]) => {
-        let mut $var: Vec<($(tuple_element_type!($tys)),+)> = (0..$len).map(|_| (
-            $(read_tuple_element!($sc, $tys)),+
-        )).collect();
+    // mut 変数の処理 (複数変数対応: mut u, v: usize1)
+    ($sc:expr, mut $($var:ident),+ : $t:tt $(, $($r:tt)*)?) => {
+        $( let mut $var = read_value!($sc, $t); )+
+        $(input!($sc, $($r)*);)?
     };
 
-    // [usize1; n] mut
-    ($sc:expr, mut $var:ident: [usize1; $len:expr], $($rest:tt)*) => {
-        let mut $var: Vec<usize> = (0..$len).map(|_| $sc.token::<usize>() - 1).collect();
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, mut $var:ident: [usize1; $len:expr]) => {
-        let mut $var: Vec<usize> = (0..$len).map(|_| $sc.token::<usize>() - 1).collect();
-    };
-
-    // [isize1; n] mut
-    ($sc:expr, mut $var:ident: [isize1; $len:expr], $($rest:tt)*) => {
-        let mut $var: Vec<isize> = (0..$len).map(|_| $sc.token::<isize>() - 1).collect();
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, mut $var:ident: [isize1; $len:expr]) => {
-        let mut $var: Vec<isize> = (0..$len).map(|_| $sc.token::<isize>() - 1).collect();
-    };
-
-    // [chars; n] mut
-    ($sc:expr, mut $var:ident: [chars; $len:expr], $($rest:tt)*) => {
-        let mut $var: Vec<Vec<char>> = (0..$len).map(|_| $sc.token::<String>().chars().collect()).collect();
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, mut $var:ident: [chars; $len:expr]) => {
-        let mut $var: Vec<Vec<char>> = (0..$len).map(|_| $sc.token::<String>().chars().collect()).collect();
-    };
-
-    // 配列 mut
-    ($sc:expr, mut $var:ident: [$ty:ty; $len:expr], $($rest:tt)*) => {
-        let mut $var: Vec<$ty> = (0..$len).map(|_| $sc.token::<$ty>()).collect();
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, mut $var:ident: [$ty:ty; $len:expr]) => {
-        let mut $var: Vec<$ty> = (0..$len).map(|_| $sc.token::<$ty>()).collect();
-    };
-
-    // chars mut
-    ($sc:expr, mut $var:ident: chars, $($rest:tt)*) => {
-        let mut $var: Vec<char> = $sc.token::<String>().chars().collect();
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, mut $var:ident: chars) => {
-        let mut $var: Vec<char> = $sc.token::<String>().chars().collect();
-    };
-
-    // usize1 mut
-    ($sc:expr, mut $var:ident: usize1, $($rest:tt)*) => {
-        let mut $var: usize = $sc.token::<usize>() - 1;
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, mut $var:ident: usize1) => {
-        let mut $var: usize = $sc.token::<usize>() - 1;
-    };
-
-    // isize1 mut
-    ($sc:expr, mut $var:ident: isize1, $($rest:tt)*) => {
-        let mut $var: isize = $sc.token::<isize>() - 1;
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, mut $var:ident: isize1) => {
-        let mut $var: isize = $sc.token::<isize>() - 1;
-    };
-
-    // グループ定義 u, v: usize1 mut
-    ($sc:expr, mut $($var:ident),+: usize1, $($rest:tt)*) => {
-        $( let mut $var: usize = $sc.token::<usize>() - 1; )+
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, mut $($var:ident),+: usize1) => {
-        $( let mut $var: usize = $sc.token::<usize>() - 1; )+
-    };
-
-    // グループ定義 u, v: isize1 mut
-    ($sc:expr, mut $($var:ident),+: isize1, $($rest:tt)*) => {
-        $( let mut $var: isize = $sc.token::<isize>() - 1; )+
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, mut $($var:ident),+: isize1) => {
-        $( let mut $var: isize = $sc.token::<isize>() - 1; )+
-    };
-
-    // グループ定義 s1, s2: chars mut
-    ($sc:expr, mut $($var:ident),+: chars, $($rest:tt)*) => {
-        $( let mut $var: Vec<char> = $sc.token::<String>().chars().collect(); )+
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, mut $($var:ident),+: chars) => {
-        $( let mut $var: Vec<char> = $sc.token::<String>().chars().collect(); )+
-    };
-
-    // グループ定義 mut
-    ($sc:expr, mut $($var:ident),+: $ty:ty, $($rest:tt)*) => {
-        $( let mut $var: $ty = $sc.token(); )+
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, mut $($var:ident),+: $ty:ty) => {
-        $( let mut $var: $ty = $sc.token(); )+
-    };
-
-    // 普通の変数 mut
-    ($sc:expr, mut $var:ident: $ty:ty, $($rest:tt)*) => {
-        let mut $var: $ty = $sc.token();
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, mut $var:ident: $ty:ty) => {
-        let mut $var: $ty = $sc.token();
-    };
-
-    // --- mut なしのルール ---
-
-    // (追加) タプルの配列
-    ($sc:expr, $var:ident: [($($tys:tt),+); $len:expr], $($rest:tt)*) => {
-        let $var: Vec<($(tuple_element_type!($tys)),+)> = (0..$len).map(|_| (
-            $(read_tuple_element!($sc, $tys)),+
-        )).collect();
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, $var:ident: [($($tys:tt),+); $len:expr]) => {
-        let $var: Vec<($(tuple_element_type!($tys)),+)> = (0..$len).map(|_| (
-            $(read_tuple_element!($sc, $tys)),+
-        )).collect();
-    };
-
-    // [usize1; n]
-    ($sc:expr, $var:ident: [usize1; $len:expr], $($rest:tt)*) => {
-        let $var: Vec<usize> = (0..$len).map(|_| $sc.token::<usize>() - 1).collect();
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, $var:ident: [usize1; $len:expr]) => {
-        let $var: Vec<usize> = (0..$len).map(|_| $sc.token::<usize>() - 1).collect();
-    };
-
-    // [isize1; n]
-    ($sc:expr, $var:ident: [isize1; $len:expr], $($rest:tt)*) => {
-        let $var: Vec<isize> = (0..$len).map(|_| $sc.token::<isize>() - 1).collect();
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, $var:ident: [isize1; $len:expr]) => {
-        let $var: Vec<isize> = (0..$len).map(|_| $sc.token::<isize>() - 1).collect();
-    };
-
-    // [chars; n]
-    ($sc:expr, $var:ident: [chars; $len:expr], $($rest:tt)*) => {
-        let $var: Vec<Vec<char>> = (0..$len).map(|_| $sc.token::<String>().chars().collect()).collect();
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, $var:ident: [chars; $len:expr]) => {
-        let $var: Vec<Vec<char>> = (0..$len).map(|_| $sc.token::<String>().chars().collect()).collect();
-    };
-
-    // 配列
-    ($sc:expr, $var:ident: [$ty:ty; $len:expr], $($rest:tt)*) => {
-        let $var: Vec<$ty> = (0..$len).map(|_| $sc.token::<$ty>()).collect();
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, $var:ident: [$ty:ty; $len:expr]) => {
-        let $var: Vec<$ty> = (0..$len).map(|_| $sc.token::<$ty>()).collect();
-    };
-
-    // chars
-    ($sc:expr, $var:ident: chars, $($rest:tt)*) => {
-        let $var: Vec<char> = $sc.token::<String>().chars().collect();
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, $var:ident: chars) => {
-        let $var: Vec<char> = $sc.token::<String>().chars().collect();
-    };
-
-    // usize1
-    ($sc:expr, $var:ident: usize1, $($rest:tt)*) => {
-        let $var: usize = $sc.token::<usize>() - 1;
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, $var:ident: usize1) => {
-        let $var: usize = $sc.token::<usize>() - 1;
-    };
-
-    // isize1
-    ($sc:expr, $var:ident: isize1, $($rest:tt)*) => {
-        let $var: isize = $sc.token::<isize>() - 1;
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, $var:ident: isize1) => {
-        let $var: isize = $sc.token::<isize>() - 1;
-    };
-
-    // グループ定義 u, v: usize1
-    ($sc:expr, $($var:ident),+: usize1, $($rest:tt)*) => {
-        $( let $var: usize = $sc.token::<usize>() - 1; )+
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, $($var:ident),+: usize1) => {
-        $( let $var: usize = $sc.token::<usize>() - 1; )+
-    };
-
-    // グループ定義 u, v: isize1
-    ($sc:expr, $($var:ident),+: isize1, $($rest:tt)*) => {
-        $( let $var: isize = $sc.token::<isize>() - 1; )+
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, $($var:ident),+: isize1) => {
-        $( let $var: isize = $sc.token::<isize>() - 1; )+
-    };
-
-    // グループ定義 s1, s2: chars
-    ($sc:expr, $($var:ident),+: chars, $($rest:tt)*) => {
-        $( let $var: Vec<char> = $sc.token::<String>().chars().collect(); )+
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, $($var:ident),+: chars) => {
-        $( let $var: Vec<char> = $sc.token::<String>().chars().collect(); )+
-    };
-
-    // グループ定義
-    ($sc:expr, $($var:ident),+: $ty:ty, $($rest:tt)*) => {
-        $( let $var: $ty = $sc.token(); )+
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, $($var:ident),+: $ty:ty) => {
-        $( let $var: $ty = $sc.token(); )+
-    };
-
-    // 普通の変数
-    ($sc:expr, $var:ident: $ty:ty, $($rest:tt)*) => {
-        let $var: $ty = $sc.token();
-        input! { $sc, $($rest)* }
-    };
-    ($sc:expr, $var:ident: $ty:ty) => {
-        let $var: $ty = $sc.token();
+    // 通常変数の処理 (複数変数対応: u, v: usize1)
+    ($sc:expr, $($var:ident),+ : $t:tt $(, $($r:tt)*)?) => {
+        $( let $var = read_value!($sc, $t); )+
+        $(input!($sc, $($r)*);)?
     };
 }
 
