@@ -1,0 +1,16 @@
+# --- Rust (Cargo) ---
+# ビルド生成物が格納されるディレクトリ
+/target/
+
+# --- Python (uv) ---
+# 仮想環境のディレクトリ
+/.venv/
+
+# コンパイル済みのPythonファイルやキャッシュ
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- OS / Editor ---
+# macOS
+.DS_Store
