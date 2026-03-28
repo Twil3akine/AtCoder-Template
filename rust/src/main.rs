@@ -11,6 +11,7 @@ use std::{
     mem::swap,
     option::Option,
     process::exit,
+    time::Instant,
 };
 
 use itertools::Itertools;
@@ -218,7 +219,6 @@ impl_fast_math!(i32, i64, isize, u32, u64, usize);
 struct Xorshift {
     seed: u64,
 }
-
 impl Xorshift {
     fn new(seed: u64) -> Self {
         Xorshift {
@@ -244,13 +244,27 @@ impl Xorshift {
     }
 }
 
+struct Timer {
+    start: Instant,
+}
+impl Timer {
+    fn new() -> Self {
+        Timer {
+            start: Instant::now(),
+        }
+    }
+
+    fn get_times(&self) -> f64 {
+        self.start.elapsed().as_secs_f64()
+    }
+}
+
 const MOD998: i64 = 998_244_353;
 const DIRECTIONS: [(isize, isize); 4] = [(0, 1), (-1, 0), (0, -1), (1, 0)]; // 右, 上, 左, 下
+
 fn main() {
     let mut sc = Scanner::new();
     let mut wr = Writer::new();
 
-    input!(
-        sc,
-    );
+    input!(sc,);
 }
