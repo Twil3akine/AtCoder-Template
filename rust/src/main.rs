@@ -1,10 +1,11 @@
 #![allow(dead_code)]
 #![allow(unused)]
 
+use std::cmp::Reverse;
+use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::f64::consts::PI;
 use std::{
     cmp::{max, min, Ord},
-    collections::{HashMap, HashSet, VecDeque},
     convert::From,
     io::*,
     iter::{zip, Iterator},
@@ -216,6 +217,39 @@ macro_rules! impl_fast_math {
 }
 
 impl_fast_math!(i32, i64, isize, u32, u64, usize);
+
+pub type MaxHeap<T> = BinaryHeap<T>;
+
+#[derive(Debug, Clone)]
+pub struct MinHeap<T>(BinaryHeap<Reverse<T>>);
+impl<T: Ord> MinHeap<T> {
+    pub fn new() -> Self {
+        Self(BinaryHeap::new())
+    }
+
+    /// 要素の追加
+    pub fn push(&mut self, item: T) {
+        self.0.push(Reverse(item));
+    }
+
+    /// 最小の要素を取り出す
+    pub fn pop(&mut self) -> Option<T> {
+        self.0.pop().map(|Reverse(v)| v)
+    }
+
+    /// 最小の要素の参照を返す
+    pub fn peek(&mut self) -> Option<&T> {
+        self.0.peek().map(|Reverse(v)| v)
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+}
 
 struct Xorshift {
     seed: u64,
