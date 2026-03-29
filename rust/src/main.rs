@@ -9,6 +9,7 @@ use std::{
     io::*,
     iter::{zip, Iterator},
     mem::swap,
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
     option::Option,
     process::exit,
     time::Instant,
@@ -259,12 +260,101 @@ impl Timer {
     }
 }
 
-const MOD998: i64 = 998_244_353;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+struct ModInt<const MOD: i64> {
+    val: i64,
+}
+impl<const MOD: i64> ModInt<MOD> {
+    fn new(mut val: i64) -> Self {
+        val %= MOD;
+        if val < 0 {
+            val += MOD;
+        }
+        Self { val }
+    }
+
+    fn val(&self) -> i64 {
+        self.val
+    }
+
+    fn inv(&self) -> Self {
+        self.pow(MOD - 2)
+    }
+
+    fn pow(&self, mut exp: i64) -> Self {
+        let mut res = 1;
+        let mut base = self.val;
+
+        while exp > 0 {
+            if exp % 2 == 1 {
+                res = (res * base) % MOD;
+            }
+            base = (base * base) % MOD;
+            exp /= 2;
+        }
+
+        Self::new(res)
+    }
+}
+impl<const MOD: i64> Add for ModInt<MOD> {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self {
+        Self::new(self.val + rhs.val())
+    }
+}
+impl<const MOD: i64> Sub for ModInt<MOD> {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self {
+        Self::new(self.val - rhs.val())
+    }
+}
+impl<const MOD: i64> Mul for ModInt<MOD> {
+    type Output = Self;
+    fn mul(self, rhs: Self) -> Self {
+        Self::new(self.val * rhs.val())
+    }
+}
+impl<const MOD: i64> Div for ModInt<MOD> {
+    type Output = Self;
+    fn div(self, rhs: Self) -> Self {
+        self * rhs.inv()
+    }
+}
+impl<const MOD: i64> AddAssign for ModInt<MOD> {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
+    }
+}
+impl<const MOD: i64> SubAssign for ModInt<MOD> {
+    fn sub_assign(&mut self, rhs: Self) {
+        *self = *self - rhs;
+    }
+}
+impl<const MOD: i64> MulAssign for ModInt<MOD> {
+    fn mul_assign(&mut self, rhs: Self) {
+        *self = *self * rhs;
+    }
+}
+impl<const MOD: i64> DivAssign for ModInt<MOD> {
+    fn div_assign(&mut self, rhs: Self) {
+        *self = *self / rhs;
+    }
+}
+
+type Mod998 = ModInt<998_244_353>;
+type Mod107 = ModInt<1_000_000_007>;
+
 const DIRECTIONS: [(isize, isize); 4] = [(0, 1), (-1, 0), (0, -1), (1, 0)]; // 右, 上, 左, 下
 
 fn main() {
     let mut sc = Scanner::new();
     let mut wr = Writer::new();
 
-    input!(sc,);
+    input!(
+        sc,
+        n: usize,
+        a: [usize; n],
+    );
+    
+    
 }
