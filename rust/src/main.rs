@@ -18,6 +18,8 @@ use std::{
 
 use itertools::Itertools;
 
+// =============================================
+
 // ローカル実行時(デバッグビルド)だけ eprintln! を実行
 macro_rules! debug {
     ($($arg:tt)*) => {
@@ -25,6 +27,8 @@ macro_rules! debug {
         eprintln!($($arg)*)
     };
 }
+
+// =============================================
 
 pub struct Scanner<R: std::io::BufRead> {
     pub reader: R,
@@ -64,7 +68,8 @@ impl Scanner<std::io::StdinLock<'static>> {
     }
 }
 
-// --- 読み込み処理を再帰的に展開するヘルパーマクロ ---
+// =============================================
+
 #[macro_export]
 macro_rules! read_value {
     // 1. タプル (例: (usize, i32, chars))
@@ -116,6 +121,8 @@ macro_rules! input {
         $(input!($sc, $($r)*);)?
     };
 }
+
+// =============================================
 
 pub struct Writer<W: Write> {
     writer: BufWriter<W>,
@@ -173,6 +180,8 @@ impl<W: Write> Drop for Writer<W> {
     }
 }
 
+// =============================================
+
 trait FastMath {
     fn fast_pow(self, n: Self) -> Self;
     fn mod_pow(self, n: Self, m: Self) -> Self;
@@ -218,6 +227,8 @@ macro_rules! impl_fast_math {
 
 impl_fast_math!(i32, i64, isize, u32, u64, usize);
 
+// =============================================
+
 pub type MaxHeap<T> = BinaryHeap<T>;
 
 #[derive(Debug, Clone)]
@@ -251,6 +262,8 @@ impl<T: Ord> MinHeap<T> {
     }
 }
 
+// =============================================
+
 struct Xorshift {
     seed: u64,
 }
@@ -279,6 +292,8 @@ impl Xorshift {
     }
 }
 
+// =============================================
+
 struct Timer {
     start: Instant,
 }
@@ -293,6 +308,8 @@ impl Timer {
         self.start.elapsed().as_secs_f64()
     }
 }
+
+// =============================================
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 struct ModInt<const MOD: i64> {
@@ -378,6 +395,8 @@ impl<const MOD: i64> DivAssign for ModInt<MOD> {
 type Mod998 = ModInt<998_244_353>;
 type Mod107 = ModInt<1_000_000_007>;
 
+// =============================================
+
 trait AlphaExt {
     fn to_idx(self) -> usize;
 }
@@ -392,7 +411,11 @@ impl AlphaExt for u8 {
     }
 }
 
+// =============================================
+
 const DIRECTIONS: [(isize, isize); 4] = [(0, 1), (-1, 0), (0, -1), (1, 0)]; // 右, 上, 左, 下
+
+// =============================================
 
 fn main() {
     let mut sc = Scanner::new();
@@ -403,6 +426,4 @@ fn main() {
         n: usize,
         a: [usize; n],
     );
-    
-    
 }
