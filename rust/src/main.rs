@@ -378,6 +378,20 @@ impl<const MOD: i64> DivAssign for ModInt<MOD> {
 type Mod998 = ModInt<998_244_353>;
 type Mod107 = ModInt<1_000_000_007>;
 
+trait AlphaExt {
+    fn to_idx(self) -> usize;
+}
+impl AlphaExt for char {
+    fn to_idx(self) -> usize {
+        (self.to_ascii_lowercase() as u8 - b'a') as usize
+    }
+}
+impl AlphaExt for u8 {
+    fn to_idx(self) -> usize {
+        (self.to_ascii_lowercase() - b'a') as usize
+    }
+}
+
 const DIRECTIONS: [(isize, isize); 4] = [(0, 1), (-1, 0), (0, -1), (1, 0)]; // 右, 上, 左, 下
 
 fn main() {
