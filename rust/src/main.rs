@@ -413,6 +413,27 @@ impl AlphaExt for u8 {
 
 // =============================================
 
+trait Compress<T> {
+    // 座圧後の配列と元の値のタプル
+    fn compressed(&self) -> (Vec<usize>, Vec<T>);
+}
+impl<T: Ord + Clone> Compress<T> for [T] {
+    fn compressed(&self) -> (Vec<usize>, Vec<T>) {
+        let mut vals = self.to_vec();
+        vals.sort_unstable();
+        vals.dedup();
+
+        let compressed = self
+            .iter()
+            .map(|x| vals.binary_search(x).unwrap())
+            .collect();
+
+        (compressed, vals)
+    }
+}
+
+// =============================================
+
 const DIRECTIONS: [(isize, isize); 4] = [(0, 1), (-1, 0), (0, -1), (1, 0)]; // 右, 上, 左, 下
 
 // =============================================
