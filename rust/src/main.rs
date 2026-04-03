@@ -434,6 +434,77 @@ impl<T: Ord + Clone> Compress<T> for [T] {
 
 // =============================================
 
+struct DSU {
+    parents: Vec<isize>,
+    group_count: usize,
+}
+impl DSU {
+    fn new(n: usize) -> Self {
+        Self {
+            parents: vec![-1; n],
+            group_count: n,
+        }
+    }
+
+    //
+    fn find(&mut self, x: usize) -> usize {
+        if self.parents[x] < 0 {
+            return x;
+        }
+
+        // 根を探す
+        let mut root = x;
+        while self.parents[root] >= 0 {
+            root = self.parents[root] as usize;
+        }
+
+        // 経路圧縮
+        let mut curr = x;
+        while curr != root {
+            let next = self.parents[curr] as usize;
+            self.parents[curr] = root as isize;
+            curr = next;
+        }
+
+        root
+    }
+
+    fn merge(&mut self, x: usize, y: usize) -> bool {
+        let mut root_x = self.find(x);
+        let mut root_y = self.find(y);
+
+        if root_x == root_y {
+            return false;
+        }
+
+        if self.parents[root_x] > self.parents[root_y] {
+            swap(&mut root_x, &mut root_y);
+        }
+
+        self.parents[root_x] += self.parents[root_y];
+        self.parents[root_y] = root_x as isize;
+
+        self.group_count -= 1;
+
+        true
+    }
+
+    fn same(&mut self, x: usize, y: usize) -> bool {
+        self.find(x) == self.find(y)
+    }
+
+    fn size(&mut self, x: usize) -> usize {
+        let root = self.find(x);
+        (-self.parents[root]) as usize
+    }
+
+    fn group_count(&self) -> usize {
+        self.group_count
+    }
+}
+
+// =============================================
+
 const DIRECTIONS: [(isize, isize); 4] = [(0, 1), (-1, 0), (0, -1), (1, 0)]; // 右, 上, 左, 下
 
 // =============================================
