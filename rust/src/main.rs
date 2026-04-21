@@ -505,7 +505,22 @@ impl DSU {
 
 // =============================================
 
-const DIRECTIONS: [(isize, isize); 4] = [(0, 1), (-1, 0), (0, -1), (1, 0)]; // 右, 上, 左, 下
+fn is_valid_range(h: usize, w: usize, coord: (usize, usize)) -> bool {
+    !(0..h).contains(&coord.0) && !(0..w).contains(&coord.1)
+}
+
+// =============================================
+
+const DIRECTIONS: [(isize, isize); 8] = [
+    (0, 1),
+    (-1, 0),
+    (0, -1),
+    (1, 0),
+    (-1, 1),
+    (-1, -1),
+    (1, -1),
+    (1, 1),
+]; // 右, 上, 左, 下, 右上、左上、左下、右下
 
 // =============================================
 
@@ -513,9 +528,5 @@ fn main() {
     let mut sc = Scanner::new();
     let mut wr = Writer::new();
 
-    input!(
-        sc,
-        n: usize,
-        a: [usize; n],
-    );
+    input!(sc,);
 }
