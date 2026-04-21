@@ -528,5 +528,8 @@ fn main() {
     let mut sc = Scanner::new();
     let mut wr = Writer::new();
 
-    input!(sc,);
+    input!(
+        sc,
+        
+    );
 }
