@@ -5,13 +5,11 @@ use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::f64::consts::PI;
 use std::{
-    cmp::{max, min, Ord},
-    convert::From,
+    cmp::{max, min},
     io::*,
-    iter::{zip, Iterator},
+    iter::zip,
     mem::swap,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
-    option::Option,
     process::exit,
     time::Instant,
 };
@@ -138,7 +136,7 @@ impl<W: Write> Writer<W> {
     }
 
     pub fn print_yes_no(&mut self, cnd: bool) {
-        self.println(if cnd == true { "Yes" } else { "No" });
+        self.println(if cnd { "Yes" } else { "No" });
     }
 
     pub fn print_yes(&mut self) {
@@ -160,7 +158,7 @@ impl<W: Write> Writer<W> {
         }
         self.println(""); // 最後に改行
     }
-    
+
     pub fn join_nospace<S: std::fmt::Display, I: IntoIterator<Item = S>>(&mut self, iter: I) {
         self.join(iter, "");
     }
@@ -475,23 +473,12 @@ impl DSU {
     fn find(&mut self, x: usize) -> usize {
         if self.parents[x] < 0 {
             return x;
+        } else {
+            let p = self.parents[x] as usize;
+            let root = self.find(p);
+            self.parents[x] = root as isize;
+            root
         }
-
-        // 根を探す
-        let mut root = x;
-        while self.parents[root] >= 0 {
-            root = self.parents[root] as usize;
-        }
-
-        // 経路圧縮
-        let mut curr = x;
-        while curr != root {
-            let next = self.parents[curr] as usize;
-            self.parents[curr] = root as isize;
-            curr = next;
-        }
-
-        root
     }
 
     fn merge(&mut self, x: usize, y: usize) -> bool {
@@ -531,7 +518,7 @@ impl DSU {
 // =============================================
 
 fn is_valid_range(h: usize, w: usize, coord: (usize, usize)) -> bool {
-    !(0..h).contains(&coord.0) && !(0..w).contains(&coord.1)
+    (0..h).contains(&coord.0) && (0..w).contains(&coord.1)
 }
 
 // =============================================
