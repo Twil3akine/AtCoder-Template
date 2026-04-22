@@ -5,31 +5,7 @@ import sys
 
 
 def main():
-    n = II1()
-    bins = []
-    # 2の冪乗を求める
-    i = 1
-    while i < 10**9:
-        bins.append(str(i))
-        i *= 2
-    cand = set()
-
-    # current: 現在の文字列
-    def dfs(current):
-        current_len = len(current)
-        for bi in bins:
-            if current_len + len(bi) > 9:
-                break
-
-            if (current + bi) not in cand:
-                dfs(current + bi)
-
-            cand.add(current + bi)
-
-    dfs("")
-    sorted_cand = sorted(map(int, list(cand)))
-    # print(len(sorted_cand))
-    print(sorted_cand[n])
+    
 
 
 # =================================
