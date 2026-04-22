@@ -164,6 +164,10 @@ impl<W: Write> Writer<W> {
     pub fn join_whitespace<S: std::fmt::Display, I: IntoIterator<Item = S>>(&mut self, iter: I) {
         self.join(iter, " ");
     }
+    
+    pub fn join_line<S: std::fmt::Display, I: IntoIterator<Item = S>>(&mut self, iter: I) {
+        self.join(iter, "\n");
+    }
 }
 
 impl Writer<std::io::StdoutLock<'static>> {
