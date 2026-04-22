@@ -160,11 +160,15 @@ impl<W: Write> Writer<W> {
         }
         self.println(""); // 最後に改行
     }
+    
+    pub fn join_nospace<S: std::fmt::Display, I: IntoIterator<Item = S>>(&mut self, iter: I) {
+        self.join(iter, "");
+    }
 
     pub fn join_whitespace<S: std::fmt::Display, I: IntoIterator<Item = S>>(&mut self, iter: I) {
         self.join(iter, " ");
     }
-    
+
     pub fn join_line<S: std::fmt::Display, I: IntoIterator<Item = S>>(&mut self, iter: I) {
         self.join(iter, "\n");
     }
@@ -412,6 +416,23 @@ impl AlphaExt for char {
 impl AlphaExt for u8 {
     fn to_idx(self) -> usize {
         (self.to_ascii_lowercase() - b'a') as usize
+    }
+}
+
+// =============================================
+
+pub trait SortReverse {
+    fn sort_reverse(&mut self);
+    fn sort_unstable_reverse(&mut self);
+}
+
+impl<T: Ord> SortReverse for [T] {
+    fn sort_reverse(&mut self) {
+        self.sort_by(|a, b| b.cmp(a));
+    }
+
+    fn sort_unstable_reverse(&mut self) {
+        self.sort_unstable_by(|a, b| b.cmp(a));
     }
 }
 
