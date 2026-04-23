@@ -91,17 +91,17 @@ async fn handle(
         Request::List => {
             let list: Vec<CompilerInfo> = vec![
                 CompilerInfo {
-                    language: "rust".into(),
+                    language: "Rust".into(),
                     compiler_name: "rust".into(),
                     label: format!("Rust ({})", versions.rust),
                 },
                 CompilerInfo {
-                    language: "python".into(),
+                    language: "Python3".into(),
                     compiler_name: "python".into(),
                     label: format!("Python (CPython {})", versions.python),
                 },
                 CompilerInfo {
-                    language: "pypy".into(),
+                    language: "Python3".into(),
                     compiler_name: "pypy".into(),
                     label: format!("Python (PyPy {})", versions.pypy),
                 },
