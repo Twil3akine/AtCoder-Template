@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 #![allow(unused)]
 
+use std::cell::RefCell;
 use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::f64::consts::PI;
@@ -27,15 +28,17 @@ macro_rules! debug {
 }
 
 // =============================================
+// Scanner
+// =============================================
 
-pub struct Scanner<R: std::io::BufRead> {
-    pub reader: R,
-    pub buf_str: Vec<u8>,
-    pub buf_iter: std::str::SplitWhitespace<'static>,
+struct Scanner<R: BufRead> {
+    reader: R,
+    buf_str: Vec<u8>,
+    buf_iter: std::str::SplitWhitespace<'static>,
 }
 
-impl<R: std::io::BufRead> Scanner<R> {
-    pub fn with_reader(reader: R) -> Self {
+impl<R: BufRead> Scanner<R> {
+    fn with_reader(reader: R) -> Self {
         Self {
             reader,
             buf_str: vec![],
@@ -43,7 +46,7 @@ impl<R: std::io::BufRead> Scanner<R> {
         }
     }
 
-    pub fn token<T: std::str::FromStr>(&mut self) -> T {
+    fn token<T: std::str::FromStr>(&mut self) -> T {
         loop {
             if let Some(token) = self.buf_iter.next() {
                 return token.parse().ok().expect("Failed to parse token");
@@ -60,22 +63,29 @@ impl<R: std::io::BufRead> Scanner<R> {
     }
 }
 
-impl Scanner<std::io::StdinLock<'static>> {
-    pub fn new() -> Self {
-        Self::with_reader(stdin().lock())
-    }
+// =============================================
+// グローバルな stdin / stdout
+// =============================================
+
+thread_local! {
+    static SC: RefCell<Scanner<std::io::BufReader<std::io::Stdin>>> =
+        RefCell::new(Scanner::with_reader(std::io::BufReader::new(stdin())));
+
+    static WR: RefCell<BufWriter<std::io::Stdout>> =
+        RefCell::new(BufWriter::new(stdout()));
 }
 
 // =============================================
+// read_value! (input! の内部用)
+// =============================================
 
-#[macro_export]
 macro_rules! read_value {
     // 1. タプル (例: (usize, i32, chars))
     ($sc:expr, ($($t:tt),*)) => {
         ( $(read_value!($sc, $t)),* )
     };
 
-    // 2. 配列 (例: [usize; n], [[isize1; w]; h], [(usize, usize); m])
+    // 2. 配列 (例: [usize; n], [[isize; w]; h], [(usize, usize); m])
     ($sc:expr, [$t:tt; $len:expr]) => {
         (0..$len).map(|_| read_value!($sc, $t)).collect::<Vec<_>>()
     };
@@ -101,53 +111,83 @@ macro_rules! read_value {
     };
 }
 
-// --- ユーザーが呼び出す input! マクロ ---
-#[macro_export]
-macro_rules! input {
-    // 再帰終了のベースケース (末尾カンマあり/なし両対応)
-    ($sc:expr $(,)*) => {};
+// =============================================
+// input! マクロ
+// =============================================
 
-    // mut 変数の処理 (複数変数対応: mut u, v: usize1)
-    ($sc:expr, mut $($var:ident),+ : $t:tt $(, $($r:tt)*)?) => {
-        $( let mut $var = read_value!($sc, $t); )+
-        $(input!($sc, $($r)*);)?
+macro_rules! input {
+    // 終端
+    ($(,)?) => {};
+
+    // mut 変数 (複数対応: mut a, b: usize)
+    (mut $($var:ident),+ : $t:tt $(, $($rest:tt)*)?) => {
+        $( let mut $var = SC.with(|sc| read_value!(sc.borrow_mut(), $t)); )+
+        $(input!($($rest)*);)?
     };
 
-    // 通常変数の処理 (複数変数対応: u, v: usize1)
-    ($sc:expr, $($var:ident),+ : $t:tt $(, $($r:tt)*)?) => {
-        $( let $var = read_value!($sc, $t); )+
-        $(input!($sc, $($r)*);)?
+    // 通常変数 (複数対応: a, b: usize)
+    ($($var:ident),+ : $t:tt $(, $($rest:tt)*)?) => {
+        $( let $var = SC.with(|sc| read_value!(sc.borrow_mut(), $t)); )+
+        $(input!($($rest)*);)?
     };
 }
 
 // =============================================
+// wprint! / wprintln! マクロ
+// =============================================
 
-pub struct Writer<W: Write> {
+macro_rules! wprint {
+    ($($arg:tt)*) => {
+        WR.with(|wr| write!(wr.borrow_mut(), $($arg)*).unwrap())
+    };
+}
+
+macro_rules! wprintln {
+    // 引数なし (改行のみ)
+    () => {
+        WR.with(|wr| writeln!(wr.borrow_mut()).unwrap())
+    };
+    ($($arg:tt)*) => {
+        WR.with(|wr| writeln!(wr.borrow_mut(), $($arg)*).unwrap())
+    };
+}
+
+/// BufWriter を明示的にフラッシュする。
+/// wprintln! / wprint! を使う場合は main の末尾で必ず呼ぶこと。
+fn wflush() {
+    WR.with(|wr| wr.borrow_mut().flush().unwrap());
+}
+
+// =============================================
+// Writer (join 系など既存のメソッドはそのまま)
+// =============================================
+
+struct Writer<W: Write> {
     writer: BufWriter<W>,
 }
 
 impl<W: Write> Writer<W> {
-    pub fn print<S: std::fmt::Display>(&mut self, s: S) {
+    fn print<S: std::fmt::Display>(&mut self, s: S) {
         write!(self.writer, "{}", s).unwrap();
     }
 
-    pub fn println<S: std::fmt::Display>(&mut self, s: S) {
+    fn println<S: std::fmt::Display>(&mut self, s: S) {
         writeln!(self.writer, "{}", s).unwrap();
     }
 
-    pub fn print_yes_no(&mut self, cnd: bool) {
+    fn print_yes_no(&mut self, cnd: bool) {
         self.println(if cnd { "Yes" } else { "No" });
     }
 
-    pub fn print_yes(&mut self) {
+    fn print_yes(&mut self) {
         self.print_yes_no(true);
     }
 
-    pub fn print_no(&mut self) {
+    fn print_no(&mut self) {
         self.print_yes_no(false);
     }
 
-    pub fn join<S: std::fmt::Display, I: IntoIterator<Item = S>>(&mut self, iter: I, sep: &str) {
+    fn join<S: std::fmt::Display, I: IntoIterator<Item = S>>(&mut self, iter: I, sep: &str) {
         let mut it = iter.into_iter();
         if let Some(first) = it.next() {
             self.print(first);
@@ -156,24 +196,24 @@ impl<W: Write> Writer<W> {
                 self.print(v);
             }
         }
-        self.println(""); // 最後に改行
+        self.println("");
     }
 
-    pub fn join_nospace<S: std::fmt::Display, I: IntoIterator<Item = S>>(&mut self, iter: I) {
+    fn join_nospace<S: std::fmt::Display, I: IntoIterator<Item = S>>(&mut self, iter: I) {
         self.join(iter, "");
     }
 
-    pub fn join_whitespace<S: std::fmt::Display, I: IntoIterator<Item = S>>(&mut self, iter: I) {
+    fn join_whitespace<S: std::fmt::Display, I: IntoIterator<Item = S>>(&mut self, iter: I) {
         self.join(iter, " ");
     }
 
-    pub fn join_line<S: std::fmt::Display, I: IntoIterator<Item = S>>(&mut self, iter: I) {
+    fn join_line<S: std::fmt::Display, I: IntoIterator<Item = S>>(&mut self, iter: I) {
         self.join(iter, "\n");
     }
 }
 
 impl Writer<std::io::StdoutLock<'static>> {
-    pub fn new() -> Self {
+    fn new() -> Self {
         Self {
             writer: BufWriter::new(stdout().lock()),
         }
@@ -537,11 +577,7 @@ const DIRECTIONS: [(isize, isize); 8] = [
 // =============================================
 
 fn main() {
-    let mut sc = Scanner::new();
-    let mut wr = Writer::new();
-
     input!(
-        sc,
         
     );
 }
