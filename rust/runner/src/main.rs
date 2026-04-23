@@ -109,7 +109,16 @@ async fn handle(
             Json(serde_json::to_value(list).unwrap())
         }
         Request::Run { compiler_name, source_code, stdin } => {
+            let start = Instant::now();
             let res = run(&compiler_name, &source_code, &stdin).await;
+            let elapsed = start.elapsed().as_millis();
+            eprintln!(
+                "[run] compiler={} status={} time={}ms exit_code={:?}",
+                compiler_name,
+                res.status,
+                elapsed,
+                res.exit_code,
+            );
             Json(serde_json::to_value(res).unwrap())
         }
     }
