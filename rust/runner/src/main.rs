@@ -290,7 +290,8 @@ async fn main() {
     let cors = CorsLayer::new()
         .allow_origin(Any)
         .allow_methods(Any)
-        .allow_headers(Any);
+        .allow_headers(Any)
+        .allow_private_network(true);
 
     let app = Router::new()
         .route("/", post(handle))
