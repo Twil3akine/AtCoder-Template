@@ -89,6 +89,7 @@ async fn handle(
 ) -> Json<serde_json::Value> {
     match req {
         Request::List => {
+            eprintln!("[list] compiler list requested");
             let list: Vec<CompilerInfo> = vec![
                 CompilerInfo {
                     language: "Rust".into(),
