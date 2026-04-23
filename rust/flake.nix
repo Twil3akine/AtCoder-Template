@@ -32,9 +32,9 @@
         '';
 
         runnerStop = pkgs.writeShellScriptBin "runner-stop" ''
-          PID=$(lsof -i :4000 -t 2>/dev/null)
+          PID=$(lsof -i :4000 -t 2>/dev/null | tr '\n' ' ')
           if [ -n "$PID" ]; then
-            kill "$PID"
+            kill $PID
             echo "Runner stopped (PID $PID)"
           else
             echo "Runner is not running"
