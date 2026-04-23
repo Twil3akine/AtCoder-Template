@@ -145,32 +145,51 @@ async fn run(compiler_name: &str, source_code: &str, stdin: &str) -> RunResponse
     }
 }
 
-async fn run_rust(source_code: &str, stdin: &str, dir: tempfile::TempDir) -> RunResponse {
-    let src = dir.path().join("solution.rs");
-    let bin = dir.path().join("solution");
+const CARGO_TOML: &str = r#"[package]
+name = "solution"
+version = "0.1.0"
+edition = "2021"
 
-    if let Err(e) = tokio::fs::write(&src, source_code).await {
+[dependencies]
+itertools = "0.13"
+rand = "0.8"
+
+[profile.release]
+opt-level = 2
+"#;
+
+async fn run_rust(source_code: &str, stdin: &str, dir: tempfile::TempDir) -> RunResponse {
+    let src_dir = dir.path().join("src");
+    if let Err(e) = tokio::fs::create_dir(&src_dir).await {
+        return internal_error(format!("mkdir src: {e}"));
+    }
+    if let Err(e) = tokio::fs::write(src_dir.join("main.rs"), source_code).await {
         return internal_error(format!("write source: {e}"));
     }
+    if let Err(e) = tokio::fs::write(dir.path().join("Cargo.toml"), CARGO_TOML).await {
+        return internal_error(format!("write Cargo.toml: {e}"));
+    }
 
-    // コンパイル
+    // cargo build --release
     let compile_result = timeout(
         COMPILE_TIMEOUT,
-        Command::new("rustc")
-            .args([src.to_str().unwrap(), "-o", bin.to_str().unwrap(), "-C", "opt-level=2"])
+        Command::new("cargo")
+            .args(["build", "--release"])
+            .current_dir(dir.path())
             .output(),
     )
     .await;
 
     match compile_result {
         Err(_) => return compile_error("コンパイルがタイムアウトしました"),
-        Ok(Err(e)) => return internal_error(format!("rustc 起動失敗: {e}")),
+        Ok(Err(e)) => return internal_error(format!("cargo 起動失敗: {e}")),
         Ok(Ok(out)) if !out.status.success() => {
             return compile_error(String::from_utf8_lossy(&out.stderr).trim());
         }
         Ok(Ok(_)) => {}
     }
 
+    let bin = dir.path().join("target/release/solution");
     execute(&bin.to_string_lossy(), &[], stdin).await
 }
 
