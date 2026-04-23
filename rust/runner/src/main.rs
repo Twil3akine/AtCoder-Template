@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -6,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use tempfile::tempdir;
 use tokio::io::AsyncWriteExt;
 use tokio::process::Command;
+use tokio::sync::Mutex;
 use tokio::time::timeout;
 use tower_http::cors::{Any, CorsLayer};
 
@@ -48,6 +50,17 @@ struct RunResponse {
     stderr: Option<String>,
 }
 
+// ── アプリ状態 ─────────────────────────────────────────────────────
+
+#[derive(Clone)]
+struct AppState {
+    versions: Arc<Versions>,
+    /// 永続 cargo プロジェクトのパス（インクリメンタルビルド用）
+    rust_project: Arc<PathBuf>,
+    /// Rust ビルドの直列化（cargo は同一ディレクトリへの並列ビルドを許可しない）
+    rust_lock: Arc<Mutex<()>>,
+}
+
 // ── バージョン検出 ─────────────────────────────────────────────────
 
 #[derive(Clone)]
@@ -67,7 +80,6 @@ async fn detect_version(cmd: &str, args: &[&str]) -> String {
         String::from_utf8_lossy(&out.stdout).into_owned()
     };
     let first = raw.lines().next().unwrap_or("?").trim().to_string();
-    // "rustc 1.82.0 (...)" → "1.82.0" / "Python 3.13.1" → "3.13.1"
     first.split_whitespace().nth(1).unwrap_or(&first).to_string()
 }
 
@@ -81,69 +93,7 @@ impl Versions {
     }
 }
 
-// ── ハンドラ ───────────────────────────────────────────────────────
-
-async fn handle(
-    axum::extract::State(versions): axum::extract::State<Arc<Versions>>,
-    Json(req): Json<Request>,
-) -> Json<serde_json::Value> {
-    match req {
-        Request::List => {
-            eprintln!("[list] compiler list requested");
-            let list: Vec<CompilerInfo> = vec![
-                CompilerInfo {
-                    language: "Rust".into(),
-                    compiler_name: "rust".into(),
-                    label: format!("Rust ({})", versions.rust),
-                },
-                CompilerInfo {
-                    language: "Python3".into(),
-                    compiler_name: "python".into(),
-                    label: format!("Python (CPython {})", versions.python),
-                },
-                CompilerInfo {
-                    language: "Python3".into(),
-                    compiler_name: "pypy".into(),
-                    label: format!("Python (PyPy {})", versions.pypy),
-                },
-            ];
-            Json(serde_json::to_value(list).unwrap())
-        }
-        Request::Run { compiler_name, source_code, stdin } => {
-            let start = Instant::now();
-            let res = run(&compiler_name, &source_code, &stdin).await;
-            let elapsed = start.elapsed().as_millis();
-            eprintln!(
-                "[run] compiler={} status={} time={}ms exit_code={:?}",
-                compiler_name,
-                res.status,
-                elapsed,
-                res.exit_code,
-            );
-            Json(serde_json::to_value(res).unwrap())
-        }
-    }
-}
-
-// ── コンパイル + 実行 ──────────────────────────────────────────────
-
-const COMPILE_TIMEOUT: Duration = Duration::from_secs(30);
-const RUN_TIMEOUT: Duration = Duration::from_secs(10);
-const MAX_OUTPUT: usize = 1 * 1024 * 1024; // 1 MiB
-
-async fn run(compiler_name: &str, source_code: &str, stdin: &str) -> RunResponse {
-    let dir = match tempdir() {
-        Ok(d) => d,
-        Err(e) => return internal_error(format!("tempdir: {e}")),
-    };
-
-    match compiler_name {
-        "rust" => run_rust(source_code, stdin, dir).await,
-        "python" => run_interpreted("python3", source_code, stdin, dir).await,
-        "pypy" => run_interpreted("pypy3", source_code, stdin, dir).await,
-        other => internal_error(format!("unknown compilerName: {other}")),
-    }
-}
+// ── 永続 Rust プロジェクトのセットアップ ──────────────────────────
 
 const CARGO_TOML: &str = r#"[package]
 name = "solution"
@@ -158,24 +108,106 @@ rand = "0.8"
 opt-level = 2
 "#;
 
-async fn run_rust(source_code: &str, stdin: &str, dir: tempfile::TempDir) -> RunResponse {
-    let src_dir = dir.path().join("src");
-    if let Err(e) = tokio::fs::create_dir(&src_dir).await {
-        return internal_error(format!("mkdir src: {e}"));
-    }
-    if let Err(e) = tokio::fs::write(src_dir.join("main.rs"), source_code).await {
-        return internal_error(format!("write source: {e}"));
-    }
-    if let Err(e) = tokio::fs::write(dir.path().join("Cargo.toml"), CARGO_TOML).await {
-        return internal_error(format!("write Cargo.toml: {e}"));
+async fn setup_rust_project() -> PathBuf {
+    let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
+    let project_dir = PathBuf::from(home).join(".cache/atcoder-runner/rust");
+    let src_dir = project_dir.join("src");
+
+    tokio::fs::create_dir_all(&src_dir).await.unwrap();
+    tokio::fs::write(project_dir.join("Cargo.toml"), CARGO_TOML).await.unwrap();
+
+    // 依存クレートを事前コンパイル（初回のみ時間がかかる）
+    let main_rs = src_dir.join("main.rs");
+    if !main_rs.exists() {
+        tokio::fs::write(&main_rs, "fn main() {}").await.unwrap();
+        eprintln!("Pre-compiling Rust dependencies (初回のみ)...");
+        let _ = Command::new("cargo")
+            .args(["build", "--release"])
+            .current_dir(&project_dir)
+            .output()
+            .await;
+        eprintln!("Rust dependencies ready.");
     }
 
-    // cargo build --release
+    project_dir
+}
+
+// ── ハンドラ ───────────────────────────────────────────────────────
+
+async fn handle(
+    axum::extract::State(state): axum::extract::State<AppState>,
+    Json(req): Json<Request>,
+) -> Json<serde_json::Value> {
+    match req {
+        Request::List => {
+            eprintln!("[list] compiler list requested");
+            let list: Vec<CompilerInfo> = vec![
+                CompilerInfo {
+                    language: "Rust".into(),
+                    compiler_name: "rust".into(),
+                    label: format!("Rust ({})", state.versions.rust),
+                },
+                CompilerInfo {
+                    language: "Python3".into(),
+                    compiler_name: "python".into(),
+                    label: format!("Python (CPython {})", state.versions.python),
+                },
+                CompilerInfo {
+                    language: "Python3".into(),
+                    compiler_name: "pypy".into(),
+                    label: format!("Python (PyPy {})", state.versions.pypy),
+                },
+            ];
+            Json(serde_json::to_value(list).unwrap())
+        }
+        Request::Run { compiler_name, source_code, stdin } => {
+            let start = Instant::now();
+            let res = run(&compiler_name, &source_code, &stdin, &state).await;
+            let elapsed = start.elapsed().as_millis();
+            eprintln!(
+                "[run] compiler={} status={} time={}ms exit_code={:?}",
+                compiler_name, res.status, elapsed, res.exit_code,
+            );
+            Json(serde_json::to_value(res).unwrap())
+        }
+    }
+}
+
+// ── コンパイル + 実行 ──────────────────────────────────────────────
+
+const COMPILE_TIMEOUT: Duration = Duration::from_secs(30);
+const RUN_TIMEOUT: Duration = Duration::from_secs(10);
+const MAX_OUTPUT: usize = 1 * 1024 * 1024; // 1 MiB
+
+async fn run(compiler_name: &str, source_code: &str, stdin: &str, state: &AppState) -> RunResponse {
+    match compiler_name {
+        "rust" => run_rust(source_code, stdin, state).await,
+        "python" | "pypy" => {
+            let interpreter = if compiler_name == "python" { "python3" } else { "pypy3" };
+            let dir = match tempdir() {
+                Ok(d) => d,
+                Err(e) => return internal_error(format!("tempdir: {e}")),
+            };
+            run_interpreted(interpreter, source_code, stdin, dir).await
+        }
+        other => internal_error(format!("unknown compilerName: {other}")),
+    }
+}
+
+async fn run_rust(source_code: &str, stdin: &str, state: &AppState) -> RunResponse {
+    // 並列ビルドを防ぐ
+    let _guard = state.rust_lock.lock().await;
+
+    let main_rs = state.rust_project.join("src/main.rs");
+    if let Err(e) = tokio::fs::write(&main_rs, source_code).await {
+        return internal_error(format!("write source: {e}"));
+    }
+
     let compile_result = timeout(
         COMPILE_TIMEOUT,
         Command::new("cargo")
             .args(["build", "--release"])
-            .current_dir(dir.path())
+            .current_dir(&*state.rust_project)
             .output(),
     )
     .await;
@@ -189,7 +221,7 @@ async fn run_rust(source_code: &str, stdin: &str, dir: tempfile::TempDir) -> Run
         Ok(Ok(_)) => {}
     }
 
-    let bin = dir.path().join("target/release/solution");
+    let bin = state.rust_project.join("target/release/solution");
     execute(&bin.to_string_lossy(), &[], stdin).await
 }
 
@@ -205,7 +237,6 @@ async fn run_interpreted(
         return internal_error(format!("write source: {e}"));
     }
 
-    // 構文チェック
     let check = timeout(
         Duration::from_secs(10),
         Command::new(interpreter)
@@ -238,7 +269,6 @@ async fn execute(cmd: &str, args: &[&str], stdin_data: &str) -> RunResponse {
         Err(e) => return internal_error(format!("実行ファイル起動失敗: {e}")),
     };
 
-    // stdin を書き込んで閉じる
     if let Some(mut si) = child.stdin.take() {
         let _ = si.write_all(stdin_data.as_bytes()).await;
     }
@@ -258,15 +288,13 @@ async fn execute(cmd: &str, args: &[&str], stdin_data: &str) -> RunResponse {
         Ok(Err(e)) => internal_error(format!("wait失敗: {e}")),
         Ok(Ok(out)) => {
             let elapsed_ms = start.elapsed().as_millis() as u64;
-            let stdout = truncate(String::from_utf8_lossy(&out.stdout).into_owned());
-            let stderr = truncate(String::from_utf8_lossy(&out.stderr).into_owned());
             RunResponse {
                 status: "success".into(),
                 exit_code: out.status.code(),
                 time: Some(elapsed_ms),
                 memory: None,
-                stdout: Some(stdout),
-                stderr: Some(stderr),
+                stdout: Some(truncate(String::from_utf8_lossy(&out.stdout).into_owned())),
+                stderr: Some(truncate(String::from_utf8_lossy(&out.stderr).into_owned())),
             }
         }
     }
@@ -281,25 +309,11 @@ fn truncate(s: String) -> String {
 }
 
 fn compile_error(msg: impl Into<String>) -> RunResponse {
-    RunResponse {
-        status: "compileError".into(),
-        exit_code: None,
-        time: None,
-        memory: None,
-        stdout: None,
-        stderr: Some(msg.into()),
-    }
+    RunResponse { status: "compileError".into(), exit_code: None, time: None, memory: None, stdout: None, stderr: Some(msg.into()) }
 }
 
 fn internal_error(msg: impl Into<String>) -> RunResponse {
-    RunResponse {
-        status: "internalError".into(),
-        exit_code: None,
-        time: None,
-        memory: None,
-        stdout: None,
-        stderr: Some(msg.into()),
-    }
+    RunResponse { status: "internalError".into(), exit_code: None, time: None, memory: None, stdout: None, stderr: Some(msg.into()) }
 }
 
 // ── main ───────────────────────────────────────────────────────────
@@ -312,6 +326,8 @@ async fn main() {
     println!("  CPython: {}", versions.python);
     println!("  PyPy   : {}", versions.pypy);
 
+    let rust_project = Arc::new(setup_rust_project().await);
+
     let port: u16 = std::env::var("RUNNER_PORT")
         .ok()
         .and_then(|v| v.parse().ok())
@@ -323,10 +339,16 @@ async fn main() {
         .allow_headers(Any)
         .allow_private_network(true);
 
+    let state = AppState {
+        versions,
+        rust_project,
+        rust_lock: Arc::new(Mutex::new(())),
+    };
+
     let app = Router::new()
         .route("/", post(handle))
         .layer(cors)
-        .with_state(versions);
+        .with_state(state);
 
     let addr = format!("127.0.0.1:{port}");
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
