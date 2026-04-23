@@ -32,14 +32,10 @@
         '';
 
         runnerStop = pkgs.writeShellScriptBin "runner-stop" ''
-          PID_FILE="$HOME/.cache/atcoder-runner.pid"
-          if [ -f "$PID_FILE" ]; then
-            PID=$(cat "$PID_FILE")
-            if kill -0 "$PID" 2>/dev/null; then
-              kill "$PID"
-              echo "Runner stopped (PID $PID)"
-            fi
-            rm -f "$PID_FILE"
+          PID=$(lsof -i :4000 -t 2>/dev/null)
+          if [ -n "$PID" ]; then
+            kill "$PID"
+            echo "Runner stopped (PID $PID)"
           else
             echo "Runner is not running"
           fi
@@ -59,13 +55,10 @@
           ];
 
           shellHook = ''
-            PID_FILE="$HOME/.cache/atcoder-runner.pid"
-
-            if [ -f "$PID_FILE" ] && kill -0 "$(cat $PID_FILE)" 2>/dev/null; then
+            if lsof -i :4000 -t >/dev/null 2>&1; then
               echo "Local Runner already running on http://127.0.0.1:4000"
             else
               runner > /tmp/atcoder-runner.log 2>&1 &
-              echo $! > "$PID_FILE"
               echo "Local Runner started on http://127.0.0.1:4000"
             fi
           '';
