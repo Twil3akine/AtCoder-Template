@@ -577,6 +577,8 @@ const DIRECTIONS: [(isize, isize); 8] = [
 // =============================================
 
 fn main() {
+    let mut wr = Writer::new();
+
     input!(
         
     );
